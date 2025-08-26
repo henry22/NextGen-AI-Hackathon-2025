@@ -1315,16 +1315,16 @@ export default function FinancialTimelineGame() {
                     )}
 
                     {/* Performance Chart */}
-                    {simulationResult && (
+                    {simulationResult && simulationResult.performance_chart && (
                       <div className="mt-6">
                         <PerformanceChart
                           data={simulationResult.performance_chart}
                           initialValue={100000}
-                          finalValue={simulationResult.final_value}
-                          totalReturn={simulationResult.total_return}
-                          volatility={simulationResult.volatility}
-                          sharpeRatio={simulationResult.sharpe_ratio}
-                          maxDrawdown={simulationResult.max_drawdown}
+                          finalValue={simulationResult.final_value || 100000}
+                          totalReturn={simulationResult.total_return || 0}
+                          volatility={simulationResult.volatility || 0.15}
+                          sharpeRatio={simulationResult.sharpe_ratio || 0.5}
+                          maxDrawdown={simulationResult.max_drawdown || -0.1}
                         />
                       </div>
                     )}
