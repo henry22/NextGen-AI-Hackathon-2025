@@ -1,0 +1,7 @@
+year,title,description,available_assets,market_volatility,open_trading
+1990,Japanese Bubble Economy Collapse,The bursting of Japan's real estate and stock market bubbles marked the beginning of the lost decade,"NIKKEI,GOLD,BONDS",high,True
+1997,Asian Financial Crisis,The financial crisis that began in Thailand swept across Asia,"VTI,GOLD,BONDS",high,True
+2000,Dot-com Bubble Burst,"Tech stocks plummeted, with the Nasdaq index falling by 78%","QQQ,GOLD,BONDS",high,True
+2008,Global Financial Crisis,The subprime mortgage crisis triggered a global financial system collapse,"VTI,GOLD,BONDS,REITs",extreme,True
+2020,COVID-19 Pandemic Impact,Global pandemic caused economic shutdowns and extreme market volatility,"VTI,QQQ,GOLD,BONDS,REITs",extreme,True
+2025,Current Challenges,"Inflation, rising interest rates, and geopolitical risks","VTI,QQQ,GOLD,BONDS,REITs,CRYPTO",medium,True
