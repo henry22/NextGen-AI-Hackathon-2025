@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { api, handleApiError, withLoading } from "@/lib/api";
+import { PerformanceChart } from "@/components/PerformanceChart";
+import { AICoach } from "@/components/AICoach";
 import {
   Card,
   CardContent,
@@ -474,6 +477,10 @@ export default function FinancialTimelineGame() {
   const [totalScore, setTotalScore] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
   const [completedMissions, setCompletedMissions] = useState<string[]>([]);
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [simulationResult, setSimulationResult] = useState<any>(null);
+  const [coachAdvice, setCoachAdvice] = useState<any>(null);
 
   // Mission game state management
   const [missionStep, setMissionStep] = useState<
@@ -504,9 +511,19 @@ export default function FinancialTimelineGame() {
     updateUnlockStatus();
   }, []);
 
-  const handleEventClick = (event: (typeof financialEvents)[0]) => {
+  const handleEventClick = async (event: (typeof financialEvents)[0]) => {
     if (event.unlocked) {
       setSelectedEvent(event);
+
+      // Load price data for the mission
+      try {
+        await withLoading(
+          api.getPrices(["VTI", "BND", "GLD"], "1y"),
+          setApiLoading
+        );
+      } catch (error) {
+        setApiError(handleApiError(error));
+      }
     }
   };
 
@@ -517,7 +534,7 @@ export default function FinancialTimelineGame() {
     }
   };
 
-  const makeInvestment = (optionId: string) => {
+  const makeInvestment = async (optionId: string) => {
     if (!selectedEvent) return;
 
     const mission = missionData[selectedEvent.year as keyof typeof missionData];
@@ -525,6 +542,29 @@ export default function FinancialTimelineGame() {
 
     if (option) {
       setSelectedInvestment(optionId);
+
+      // Simulate investment using API
+      try {
+        const simulationRequest = {
+          initial_capital: 100000,
+          asset_weights: {
+            [option.name]: 1.0, // 100% allocation to selected option
+          },
+          trading_type: "open" as const,
+          investment_goal: "balanced" as const,
+          time_horizon: 365,
+        };
+
+        const result = await withLoading(
+          api.simulateInvestment(simulationRequest),
+          setApiLoading
+        );
+
+        setSimulationResult(result);
+      } catch (error) {
+        setApiError(handleApiError(error));
+      }
+
       setMissionResult({
         option,
         actualReturn: option.actualReturn,
@@ -1250,6 +1290,44 @@ export default function FinancialTimelineGame() {
                         </div>
                       </CardContent>
                     </Card>
+
+                    {/* AI Coach Section */}
+                    {simulationResult && (
+                      <div className="mt-6">
+                        <AICoach
+                          playerLevel={
+                            playerLevel === 1
+                              ? "beginner"
+                              : playerLevel === 2
+                              ? "intermediate"
+                              : "advanced"
+                          }
+                          currentPortfolio={{
+                            [missionResult.option.name]: 1.0,
+                          }}
+                          investmentGoal="balanced"
+                          riskTolerance={0.5}
+                          completedMissions={completedMissions}
+                          currentMission={selectedEvent?.title}
+                          onAdviceReceived={setCoachAdvice}
+                        />
+                      </div>
+                    )}
+
+                    {/* Performance Chart */}
+                    {simulationResult && (
+                      <div className="mt-6">
+                        <PerformanceChart
+                          data={simulationResult.performance_chart}
+                          initialValue={100000}
+                          finalValue={simulationResult.final_value}
+                          totalReturn={simulationResult.total_return}
+                          volatility={simulationResult.volatility}
+                          sharpeRatio={simulationResult.sharpe_ratio}
+                          maxDrawdown={simulationResult.max_drawdown}
+                        />
+                      </div>
+                    )}
 
                     <Button
                       onClick={completeMission}
