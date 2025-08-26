@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { api, handleApiError, withLoading } from "@/lib/api";
 import { PerformanceChart } from "@/components/PerformanceChart";
 import { AICoach } from "@/components/AICoach";
+import InvestmentCompetition from "@/components/investment-competition";
+import TradingDashboard from "@/components/trading-dashboard";
+import CompetitionResults from "@/components/competition-results";
 import {
   Card,
   CardContent,
@@ -467,6 +470,9 @@ const missionData = {
 };
 
 export default function FinancialTimelineGame() {
+  const [currentPage, setCurrentPage] = useState<
+    "timeline" | "competition" | "trading" | "results"
+  >("timeline");
   const [selectedEvent, setSelectedEvent] = useState<
     (typeof financialEvents)[0] | null
   >(null);
@@ -476,11 +482,22 @@ export default function FinancialTimelineGame() {
   const [playerXP, setPlayerXP] = useState(0);
   const [totalScore, setTotalScore] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
+  const [summaryDismissed, setSummaryDismissed] = useState(false);
+  const summaryTimerRef = useRef<number | null>(null);
   const [completedMissions, setCompletedMissions] = useState<string[]>([]);
   const [apiLoading, setApiLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [simulationResult, setSimulationResult] = useState<any>(null);
   const [coachAdvice, setCoachAdvice] = useState<any>(null);
+  const [competitionUnlocked, setCompetitionUnlocked] = useState(false);
+  const [competitionConfig, setCompetitionConfig] = useState<{
+    portfolio: any;
+    coach: any;
+  } | null>(null);
+  const [resultsData, setResultsData] = useState<{
+    finalValue: number;
+    totalReturn: number;
+  } | null>(null);
 
   // Mission game state management
   const [missionStep, setMissionStep] = useState<
@@ -595,6 +612,13 @@ export default function FinancialTimelineGame() {
         updateUnlockStatus();
       }
 
+      if (
+        selectedEvent.year === 2025 &&
+        selectedEvent.title === "Current Challenges"
+      ) {
+        setCompetitionUnlocked(true);
+      }
+
       setGameStarted(false);
       setSelectedEvent(null);
       setMissionStep("intro");
@@ -608,10 +632,19 @@ export default function FinancialTimelineGame() {
   );
 
   useEffect(() => {
-    if (allMissionsCompleted && !showSummary) {
-      setTimeout(() => setShowSummary(true), 1000);
+    if (allMissionsCompleted && !showSummary && !summaryDismissed) {
+      summaryTimerRef.current = window.setTimeout(() => {
+        setShowSummary(true);
+      }, 1000);
     }
-  }, [allMissionsCompleted, showSummary]);
+
+    return () => {
+      if (summaryTimerRef.current) {
+        clearTimeout(summaryTimerRef.current);
+        summaryTimerRef.current = null;
+      }
+    };
+  }, [allMissionsCompleted, showSummary, summaryDismissed]);
 
   const calculateLearningStats = () => {
     const totalMissions = financialEvents.length;
@@ -666,9 +699,70 @@ export default function FinancialTimelineGame() {
     return insights;
   };
 
+  const startCompetition = () => {
+    setCurrentPage("competition");
+  };
+
+  const handleStartTrading = (portfolio: any, coach: any) => {
+    setCompetitionConfig({ portfolio, coach });
+    setCurrentPage("trading");
+  };
+
+  const handleEndCompetition = (results: any) => {
+    console.log("[handleEndCompetition] results:", results);
+    if (
+      results &&
+      typeof results.finalValue === "number" &&
+      typeof results.totalReturn === "number"
+    ) {
+      setResultsData({
+        finalValue: results.finalValue,
+        totalReturn: results.totalReturn,
+      });
+      setCurrentPage("results");
+    } else {
+      setCurrentPage("competition");
+    }
+  };
+
+  const handleBackToHome = () => {
+    setCurrentPage("timeline");
+    setCompetitionConfig(null);
+    setResultsData(null);
+  };
+
   const currentMission = selectedEvent
     ? missionData[selectedEvent.year as keyof typeof missionData]
     : null;
+
+  if (currentPage === "competition") {
+    return (
+      <InvestmentCompetition
+        onBack={() => setCurrentPage("timeline")}
+        onStartTrading={handleStartTrading}
+      />
+    );
+  }
+
+  if (currentPage === "trading" && competitionConfig) {
+    return (
+      <TradingDashboard
+        initialPortfolio={competitionConfig.portfolio}
+        selectedCoach={competitionConfig.coach}
+        onEndCompetition={handleEndCompetition}
+      />
+    );
+  }
+
+  if (currentPage === "results" && resultsData) {
+    return (
+      <CompetitionResults
+        finalValue={resultsData.finalValue}
+        totalReturn={resultsData.totalReturn}
+        onBackToHome={handleBackToHome}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -913,6 +1007,82 @@ export default function FinancialTimelineGame() {
                         </div>
                       </div>
                     ))}
+
+                    {competitionUnlocked && (
+                      <div className="relative flex items-start gap-6">
+                        {/* Competition Node */}
+                        <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-4 bg-gradient-to-r from-yellow-400 to-orange-500 border-yellow-400 text-white">
+                          <Trophy className="h-6 w-6" />
+                        </div>
+
+                        {/* Competition Card */}
+                        <div className="flex-1">
+                          <Card className="border-2 border-yellow-400/50 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <CardTitle className="font-serif text-lg text-yellow-700 dark:text-yellow-300">
+                                    Investment Competition
+                                  </CardTitle>
+                                  <CardDescription className="font-medium text-orange-600 dark:text-orange-400 mt-1">
+                                    Special Challenge
+                                  </CardDescription>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Badge className="bg-yellow-500 text-white">
+                                    Special Challenge
+                                  </Badge>
+                                  <Badge
+                                    variant="outline"
+                                    className="border-orange-400 text-orange-600"
+                                  >
+                                    Master Level
+                                  </Badge>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                                Congratulations on completing all historical
+                                challenges! Now join the investment competition
+                                and compete with other players to showcase your
+                                investment skills!
+                              </p>
+                              <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 mb-4">
+                                <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                  <Trophy className="h-4 w-4 text-yellow-500" />
+                                  Competition Features
+                                </div>
+                                <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                                  <li>• Real-time market data simulation</li>
+                                  <li>• Compete with global players ranking</li>
+                                  <li>• Rich rewards and achievement system</li>
+                                  <li>
+                                    • Advanced investment strategy challenges
+                                  </li>
+                                </ul>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Trophy className="h-4 w-4 text-yellow-500" />
+                                  <span className="text-yellow-600 dark:text-yellow-400 font-medium">
+                                    Unlimited XP Potential
+                                  </span>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  className="font-medium bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white border-0"
+                                  onClick={startCompetition}
+                                >
+                                  <Trophy className="h-5 w-5 mr-2" />
+                                  Start Competition
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -1344,7 +1514,13 @@ export default function FinancialTimelineGame() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showSummary} onOpenChange={setShowSummary}>
+      <Dialog
+        open={showSummary}
+        onOpenChange={(open) => {
+          setShowSummary(open);
+          if (!open) setSummaryDismissed(true);
+        }}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-serif text-3xl text-center flex items-center justify-center gap-3">
