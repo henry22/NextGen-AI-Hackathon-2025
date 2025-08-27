@@ -2,7 +2,7 @@ import React from "react";
 import { InvestmentOption } from "@/components/data/missions";
 import { FinancialEvent } from "@/components/data/events";
 import { TeachingDialogue } from "@/components/mission/TeachingDialogue";
-import { aiCoaches } from "@/components/data/coaches";
+import { aiCoaches, AICoach } from "@/components/data/coaches";
 
 interface MissionResultProps {
   selectedOption: InvestmentOption;
@@ -14,6 +14,7 @@ interface MissionResultProps {
   simulationResult?: any;
   playerLevel: number;
   completedMissions: string[];
+  selectedCoach: AICoach; // Add selectedCoach prop
   onComplete: () => void;
 }
 
@@ -27,6 +28,7 @@ export function MissionResult({
   simulationResult,
   playerLevel,
   completedMissions,
+  selectedCoach, // Add selectedCoach parameter
   onComplete,
 }: MissionResultProps) {
   return (
@@ -34,7 +36,7 @@ export function MissionResult({
       {/* Teaching AI Coach Dialogue */}
       <div className="mt-6">
         <TeachingDialogue
-          coach={aiCoaches[playerLevel - 1] || aiCoaches[0]}
+          coach={selectedCoach} // Use the selected coach instead of playerLevel-based coach
           selectedOption={selectedOption}
           actualReturn={actualReturn}
           finalAmount={finalAmount}

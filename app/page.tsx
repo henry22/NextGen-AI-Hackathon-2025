@@ -114,6 +114,31 @@ export default function FinancialTimelineGame() {
     if (option) {
       setSelectedInvestment(optionId);
 
+      // Calculate coach-adjusted returns based on selected coach
+      const getCoachAdjustedReturn = (
+        baseReturn: number,
+        coachPersonality: string
+      ) => {
+        const adjustmentFactors = {
+          "Conservative Coach": 0.8, // More conservative, reduce extreme losses/gains
+          "Balanced Coach": 1.0, // No adjustment, balanced approach
+          "Aggressive Coach": 1.3, // More aggressive, amplify returns
+          "Income Coach": 0.9, // Slightly conservative, focus on stability
+        };
+
+        const factor =
+          adjustmentFactors[
+            coachPersonality as keyof typeof adjustmentFactors
+          ] || 1.0;
+
+        // Apply adjustment with some randomness
+        const randomFactor = 0.9 + Math.random() * 0.2; // 0.9 to 1.1
+        const adjustedReturn = baseReturn * factor * randomFactor;
+
+        // Ensure returns stay within reasonable bounds
+        return Math.max(-80, Math.min(100, adjustedReturn));
+      };
+
       // Get real historical data instead of simulation
       try {
         // Map investment options to real tickers
@@ -146,11 +171,18 @@ export default function FinancialTimelineGame() {
         setSimulationResult(null);
       }
 
+      // Calculate coach-adjusted return
+      const coachAdjustedReturn = getCoachAdjustedReturn(
+        option.actualReturn,
+        selectedCoach.personality
+      );
+      const finalAmount = 100000 * (1 + coachAdjustedReturn / 100);
+
       setMissionResult({
         option,
-        actualReturn: option.actualReturn,
-        finalAmount: 100000 * (1 + option.actualReturn / 100),
-        performance: option.actualReturn > 0 ? "profit" : "loss",
+        actualReturn: coachAdjustedReturn,
+        finalAmount: finalAmount,
+        performance: coachAdjustedReturn > 0 ? "profit" : "loss",
       });
       setMissionStep("result");
     }

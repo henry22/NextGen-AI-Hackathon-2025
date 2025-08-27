@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState, useEffect, useRef } from "react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,8 +13,12 @@ import {
   Shield,
 } from "lucide-react";
 import { PerformanceChart } from "@/components/PerformanceChart";
-import { api, InvestmentMetrics } from "@/lib/api";
+import { api, InvestmentMetrics, CoachRequest, CoachResponse } from "@/lib/api";
 import ReactMarkdown from "react-markdown";
+
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
 
 interface TeachingDialogueProps {
   coach: {
@@ -58,6 +62,82 @@ interface TeachingMessage {
   showAnalysis?: boolean;
 }
 
+// ============================================================================
+// CONSTANTS & CONFIGURATIONS
+// ============================================================================
+
+const TICKER_MAP: Record<string, string> = {
+  "Japanese Stocks": "^N225", // Nikkei 225
+  "Tokyo Real Estate": "^N225", // Using Nikkei as proxy
+  "US Treasury Bonds": "^TNX", // 10-year Treasury yield
+  Gold: "GLD", // Gold ETF
+  "US Dollar Cash": "UUP", // US Dollar ETF
+  "Australian Stocks": "^AXJO", // ASX 200
+  Bitcoin: "BTC-USD", // Bitcoin
+  Ethereum: "ETH-USD", // Ethereum
+};
+
+const TYPING_SPEED = 30; // milliseconds per character
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Maps coach personality to risk tolerance
+ */
+const getRiskTolerance = (personality: string): number => {
+  const toleranceMap: Record<string, number> = {
+    "Conservative Coach": 0.2,
+    "Balanced Coach": 0.5,
+    "Aggressive Coach": 0.8,
+    "Income Coach": 0.3,
+  };
+  return toleranceMap[personality] || 0.5;
+};
+
+/**
+ * Maps coach personality to investment goal
+ */
+const getInvestmentGoal = (
+  personality: string
+): "balanced" | "capital_gains" | "cash_flow" => {
+  const goalMap: Record<string, "balanced" | "capital_gains" | "cash_flow"> = {
+    "Conservative Coach": "capital_gains",
+    "Balanced Coach": "balanced",
+    "Aggressive Coach": "capital_gains",
+    "Income Coach": "cash_flow",
+  };
+  return goalMap[personality] || "balanced";
+};
+
+/**
+ * Extracts year from event title
+ */
+const extractEventYear = (eventTitle: string): number => {
+  const yearMatch = eventTitle.match(/\d{4}/);
+  return parseInt(yearMatch?.[0] || "1990");
+};
+
+/**
+ * Formats currency value
+ */
+const formatCurrency = (value: number): string => {
+  return value.toLocaleString();
+};
+
+/**
+ * Formats percentage with sign
+ */
+const formatPercentage = (value: number): string => {
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toFixed(2)}%`;
+};
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
 export function TeachingDialogue({
   coach,
   selectedOption,
@@ -69,6 +149,10 @@ export function TeachingDialogue({
   simulationResult,
   onComplete,
 }: TeachingDialogueProps) {
+  // ============================================================================
+  // STATE MANAGEMENT
+  // ============================================================================
+
   const [messages, setMessages] = useState<TeachingMessage[]>([]);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState("");
@@ -78,30 +162,25 @@ export function TeachingDialogue({
     null
   );
   const [loadingMetrics, setLoadingMetrics] = useState(false);
+  const [aiCoachAdvice, setAiCoachAdvice] = useState<CoachResponse | null>(
+    null
+  );
+  const [loadingAiAdvice, setLoadingAiAdvice] = useState(false);
+
+  // Use ref to track if we've already generated dialogue
+  const hasGeneratedDialogue = useRef(false);
+
+  // ============================================================================
+  // DATA FETCHING EFFECTS
+  // ============================================================================
 
   // Fetch real investment metrics
   useEffect(() => {
     const fetchRealMetrics = async () => {
       setLoadingMetrics(true);
       try {
-        // Map investment options to real tickers
-        const tickerMap: Record<string, string> = {
-          "Japanese Stocks": "^N225", // Nikkei 225
-          "Tokyo Real Estate": "^N225", // Using Nikkei as proxy
-          "US Treasury Bonds": "^TNX", // 10-year Treasury yield
-          Gold: "GLD", // Gold ETF
-          "US Dollar Cash": "UUP", // US Dollar ETF
-          "Australian Stocks": "^AXJO", // ASX 200
-          Bitcoin: "BTC-USD", // Bitcoin
-          Ethereum: "ETH-USD", // Ethereum
-        };
-
-        const ticker = tickerMap[selectedOption.name] || "^GSPC"; // Default to S&P 500
-
-        // Get event year from event title
-        const eventYear = parseInt(event.title.match(/\d{4}/)?.[0] || "1990");
-
-        // Fetch historical performance for the event period
+        const ticker = TICKER_MAP[selectedOption.name] || "^GSPC"; // Default to S&P 500
+        const eventYear = extractEventYear(event.title);
         const metrics = await api.getHistoricalPerformance(ticker, eventYear);
         setRealMetrics(metrics);
       } catch (error) {
@@ -115,262 +194,131 @@ export function TeachingDialogue({
     fetchRealMetrics();
   }, [selectedOption.name, event.title]);
 
-  // Generate comprehensive teaching dialogue
+  // Fetch AI coach advice
   useEffect(() => {
+    const fetchAiCoachAdvice = async () => {
+      setLoadingAiAdvice(true);
+      try {
+        const coachRequest: CoachRequest = {
+          player_level: "beginner",
+          current_portfolio: { [selectedOption.name]: 1.0 }, // 100% in selected option
+          investment_goal: getInvestmentGoal(coach.personality),
+          risk_tolerance: getRiskTolerance(coach.personality),
+          time_horizon: 365,
+          completed_missions: ["Basic Investment", "Risk Management"],
+          current_mission: event.title,
+          player_context: `Player just completed an investment mission where they invested in ${
+            selectedOption.name
+          } during ${
+            event.title
+          }. The investment resulted in a ${performance} with ${actualReturn}% return, ending with $${formatCurrency(
+            finalAmount
+          )}. The player is working with ${coach.name} (${
+            coach.personality
+          }) who specialises in ${coach.description}.`,
+        };
+
+        const advice = await api.getCoachAdvice(coachRequest);
+        setAiCoachAdvice(advice);
+      } catch (error) {
+        console.error("Failed to fetch AI coach advice:", error);
+        // Fall back to static content
+      } finally {
+        setLoadingAiAdvice(false);
+      }
+    };
+
+    fetchAiCoachAdvice();
+  }, [
+    selectedOption.name,
+    event.title,
+    actualReturn,
+    finalAmount,
+    performance,
+    coach.name,
+    coach.personality,
+  ]);
+
+  // ============================================================================
+  // DIALOGUE GENERATION
+  // ============================================================================
+
+  // Generate simplified teaching dialogue
+  useEffect(() => {
+    if (loadingAiAdvice || hasGeneratedDialogue.current) {
+      return; // Don't generate dialogue while loading or if already generated
+    }
+
     const generateDialogue = () => {
       const newMessages: TeachingMessage[] = [];
+      const useAiAdvice = aiCoachAdvice && !loadingAiAdvice;
 
-      // Helper function to get dynamic content
-      const getDynamicContent = () => {
-        const finalValue = loadingMetrics
-          ? "Loading..."
-          : realMetrics
-          ? realMetrics.final_value.toLocaleString()
-          : finalAmount.toLocaleString();
-        const totalReturn = loadingMetrics
-          ? "Loading..."
-          : realMetrics
-          ? realMetrics.total_return.toFixed(2)
-          : actualReturn;
-        const volatility = loadingMetrics
-          ? "Loading..."
-          : realMetrics
-          ? realMetrics.volatility.toFixed(2)
-          : "16.26";
-        const volatilityType = loadingMetrics
-          ? "Loading..."
-          : realMetrics
-          ? realMetrics.volatility > 20
-            ? "High volatility"
-            : "Low volatility"
-          : "Low volatility";
-        const volatilityDescription = loadingMetrics
-          ? "Loading..."
-          : realMetrics
-          ? realMetrics.volatility > 20
-            ? "wild roller coaster ride"
-            : "smooth, gentle boat ride"
-          : "smooth, gentle boat ride";
-        const sharpeRatio = loadingMetrics
-          ? "Loading..."
-          : realMetrics
-          ? realMetrics.sharpe_ratio.toFixed(2)
-          : "0.10";
-        const sharpeType = loadingMetrics
-          ? "Loading..."
-          : realMetrics
-          ? realMetrics.sharpe_ratio > 0
-            ? "positive"
-            : "negative"
-          : "positive";
-        const sharpeDescription = loadingMetrics
-          ? "Loading..."
-          : realMetrics
-          ? realMetrics.sharpe_ratio > 0
-            ? "good returns for the risk"
-            : "the risk wasn't worth it"
-          : "good returns for the risk";
-        const maxDrawdown = loadingMetrics
-          ? "Loading..."
-          : realMetrics
-          ? realMetrics.max_drawdown.toFixed(2)
-          : "-19.56";
-        const drawdownValue = loadingMetrics
-          ? "Loading..."
-          : realMetrics
-          ? (
-              realMetrics.final_value *
-              (1 + realMetrics.max_drawdown / 100)
-            ).toLocaleString()
-          : "80,440";
-
-        return {
-          finalValue,
-          totalReturn,
-          volatility,
-          volatilityType,
-          volatilityDescription,
-          sharpeRatio,
-          sharpeType,
-          sharpeDescription,
-          maxDrawdown,
-          drawdownValue,
-        };
-      };
-
-      const dynamic = getDynamicContent();
-
-      // Greeting
+      // Greeting and result combined
       newMessages.push({
         id: "greeting",
         type: "greeting",
-        content: `Hey there, young investor! Let's review your ${selectedOption.name} investment together. I'll walk you through what happened and what we can learn from it.`,
+        content: useAiAdvice
+          ? aiCoachAdvice.advice
+          : `Hey there! Your ${
+              selectedOption.name
+            } investment resulted in a ${performance} with ${actualReturn}% return, ending with $${formatCurrency(
+              finalAmount
+            )}.`,
         showContinue: true,
       });
 
-      // Result reveal
+      // Key insights
       newMessages.push({
-        id: "result",
-        type: "result",
-        content:
-          (realMetrics?.total_return || actualReturn) > 0
-            ? `Great news! Your ${selectedOption.name} investment earned you ${
-                realMetrics?.total_return?.toFixed(2) || actualReturn
-              }% return. You turned $100,000 into $${
-                realMetrics?.final_value?.toLocaleString() ||
-                finalAmount.toLocaleString()
-              }. That's solid performance!`
-            : `Your ${selectedOption.name} investment resulted in a ${
-                realMetrics?.total_return?.toFixed(2) || actualReturn
-              }% loss, reducing your $100,000 to $${
-                realMetrics?.final_value?.toLocaleString() ||
-                finalAmount.toLocaleString()
-              }. But don't worry - every investor learns from losses!`,
-        showContinue: true,
-      });
-
-      // Combined metrics explanation
-      newMessages.push({
-        id: "metrics",
+        id: "insights",
         type: "metrics",
-        content: `Now let's look at your investment report card! These numbers tell us exactly how well your $100,000 performed. Let me explain what each one means:
-
-• **Final Value**: This is exactly how much money you have at the end. If you started with $100,000 and now have $${dynamic.finalValue}, that's your Final Value. It's like checking your bank account balance!
-
-• **Total Return**: This percentage tells you if you made money or lost money. If it's positive (like +5%), you made money. If it's negative (like ${dynamic.totalReturn}%), you lost money. Think of it as your investment's report card grade!
-
-• **Volatility**: This measures how much your investment value jumped up and down. ${dynamic.volatilityType} (${dynamic.volatility}%) means your money went on a ${dynamic.volatilityDescription}!
-
-• **Sharpe Ratio**: This is like a "bang for your buck" score. It tells you if the risk you took was worth the reward you got. A ${dynamic.sharpeType} number (${dynamic.sharpeRatio}) means ${dynamic.sharpeDescription}.`,
+        content:
+          useAiAdvice && aiCoachAdvice.educational_insights.length > 0
+            ? `**Key Insights:**\n${aiCoachAdvice.educational_insights
+                .map((insight) => `• ${insight}`)
+                .join("\n")}`
+            : `Your investment shows how markets can be unpredictable. The key is to learn from every experience!`,
         showContinue: true,
         showMetrics: true,
       });
 
-      // Combined chart explanation
+      // Chart explanation
       newMessages.push({
         id: "chart",
         type: "chart",
-        content: `Now let's look at your investment journey over time! This chart shows how your $100,000 changed day by day. Here's how to read it like a pro:
-
-**Portfolio Performance Chart:**
-• **Upward slope**: Your money is growing! The steeper the line, the faster it's multiplying.
-• **Downward slope**: Your investment value is decreasing. Don't panic - this is normal!
-• **Flat line**: Your investment is stable - not growing much, but not losing much either.
-• **Bumps and dips**: These show daily market movements. Markets are like the weather - sometimes sunny, sometimes rainy!
-
-**Annual Returns Chart:**
-• **Positive bars**: Good years when your investment made money
-• **Negative bars**: Tough years when your investment lost money
-• **The trend**: Look at the overall pattern - are there more good years than bad years?
-
-**Key Lesson**: The overall trend is what matters most, not the daily ups and downs. Think long-term!`,
+        content:
+          useAiAdvice && aiCoachAdvice.recommendations.length > 0
+            ? `**Chart Analysis:**\n${aiCoachAdvice.recommendations
+                .slice(0, 2)
+                .map((rec) => `• ${rec}`)
+                .join("\n")}`
+            : `This chart shows your investment journey. The trend is what matters most!`,
         showContinue: true,
         showChart: true,
       });
 
-      // Combined risk analysis
+      // Recommendations
       newMessages.push({
-        id: "analysis",
-        type: "analysis",
-        content: `Now let's talk about risk - this is super important for young investors! Here's what these risk numbers mean:
-
-**Maximum Drawdown:**
-This is the biggest drop your investment ever experienced from its highest point. Think of it like the deepest dip on a roller coaster ride!
-
-• **What it means**: If your investment was worth $100,000 at its peak, but dropped to $${dynamic.drawdownValue} at its lowest point, that's a ${dynamic.maxDrawdown}% drawdown.
-• **Why it matters**: This tells you the worst-case scenario you experienced. It helps you understand how much risk you can handle.
-
-**Risk-Adjusted Return (Sharpe Ratio):**
-This is like a "bang for your buck" score for your investment. It tells you if the risk you took was worth the reward you got.
-
-• **What it means**: A ${dynamic.sharpeType} number (${dynamic.sharpeRatio}) means ${dynamic.sharpeDescription}.
-• **Why it matters**: This helps you choose investments that give you the best reward for the risk you're willing to take.
-
-**Key Lesson**: Understanding these risk numbers helps you make smarter investment choices!`,
-        showContinue: true,
-        showAnalysis: true,
-      });
-
-      // Investment strategy lesson - Personalized by coach type
-      newMessages.push({
-        id: "strategy",
+        id: "recommendations",
         type: "lesson",
         content:
-          coach.personality === "Conservative Coach"
-            ? `As your conservative coach, I want to emphasize the importance of steady, reliable investing! Here are my top lessons:
-
-• **Safety First**: Start with stable investments like bonds and blue-chip stocks. Think of it like building a house - you need a solid foundation first!
-
-• **Diversification**: Don't put all your money in one place. Spread it across different types of investments - like having different players on your team!
-
-• **Time in the market**: The longer you stay invested, the better your chances of success. Think of it like planting a tree - it takes time to grow!
-
-• **Research first**: Always understand what you're investing in before you put your money down. Knowledge is your best investment tool!`
-            : coach.personality === "Growth Coach"
-            ? `As your growth coach, I want to show you how to maximize your investment potential! Here are my key strategies:
-
-• **Growth Opportunities**: Look for investments with strong growth potential, but always balance with some safer options too!
-
-• **Diversification**: Don't put all your money in one place. Spread it across different types of investments - like having different players on your team!
-
-• **Time in the market**: The longer you stay invested, the better your chances of success. Think of it like planting a tree - it takes time to grow!
-
-• **Research first**: Always understand what you're investing in before you put your money down. Knowledge is your best investment tool!`
-            : `Now let's talk about what this teaches us about smart investing! Here are some key lessons every young investor should remember:
-
-• **Diversification**: Don't put all your money in one place. Spread it across different types of investments - like having different players on your team!
-
-• **Time in the market**: The longer you stay invested, the better your chances of success. Think of it like planting a tree - it takes time to grow!
-
-• **Risk vs Reward**: Higher potential returns usually come with higher risk. It's like choosing between a safe bike ride or an exciting roller coaster.
-
-• **Research first**: Always understand what you're investing in before you put your money down. Knowledge is your best investment tool!`,
+          useAiAdvice && aiCoachAdvice.recommendations.length > 0
+            ? `**My Recommendations:**\n${aiCoachAdvice.recommendations
+                .map((rec) => `• ${rec}`)
+                .join("\n")}`
+            : `Remember: diversify your investments and think long-term!`,
         showContinue: true,
       });
 
-      // Practical tips
+      // Next steps
       newMessages.push({
-        id: "tips",
+        id: "next_steps",
         type: "lesson",
-        content: `Here are some practical tips for young investors like you:
-
-• **Start small**: You don't need thousands to begin investing. Many platforms let you start with just $10!
-
-• **Set goals**: Know what you're saving for - a car, university, or your first home. Goals help you stay focused.
-
-• **Emergency fund first**: Before investing, save 3-6 months of expenses in a savings account. This is your safety net!
-
-• **Learn continuously**: Read about investing, follow financial news, and practice with games like this one.
-
-• **Don't panic**: Markets go up and down. Stay calm and stick to your plan!`,
-        showContinue: true,
-      });
-
-      // Combined summary
-      newMessages.push({
-        id: "summary",
-        type: "lesson",
-        content: `🎓 Let's review what you learned today! You're now a financial expert:
-
-**Investment Metrics:**
-✅ **Final Value**: How much money you have at the end
-✅ **Total Return**: Your profit or loss percentage
-✅ **Volatility**: How bumpy your investment ride was
-✅ **Sharpe Ratio**: Whether the risk was worth the reward
-
-**Charts & Risk:**
-✅ **Portfolio Performance**: Your money's journey over time
-✅ **Annual Returns**: Year-by-year performance report card
-✅ **Maximum Drawdown**: The biggest drop you experienced
-✅ **Risk-Adjusted Return**: Reward vs risk score
-
-**Smart Strategies:**
-✅ **Diversification**: Don't put all your money in one place
-✅ **Time in the market**: The longer you stay invested, the better
-✅ **Research first**: Always understand what you're investing in
-✅ **Start small**: You can begin with just $10!
-
-You now speak the language of finance! 🎉`,
+        content:
+          useAiAdvice && aiCoachAdvice.next_steps.length > 0
+            ? `**Next Steps:**\n${aiCoachAdvice.next_steps
+                .map((step) => `• ${step}`)
+                .join("\n")}`
+            : `Keep learning and practicing! Every expert started where you are now.`,
         showContinue: true,
       });
 
@@ -378,24 +326,33 @@ You now speak the language of finance! 🎉`,
       newMessages.push({
         id: "completion",
         type: "completion",
-        content: `🎉 Congratulations! You've earned 150 XP and completed this investment mission. You now have the knowledge to make smart financial decisions. Remember: every expert investor started exactly where you are now. Keep learning, keep practicing, and your financial future will be bright! Ready for your next challenge?`,
+        content: useAiAdvice
+          ? `🎉 ${aiCoachAdvice.encouragement} Ready for your next challenge?`
+          : `🎉 Congratulations! You've completed this investment mission. Ready for your next challenge?`,
         showComplete: true,
       });
 
       setMessages(newMessages);
+      hasGeneratedDialogue.current = true; // Mark dialogue as generated
     };
 
     generateDialogue();
   }, [
-    coach,
+    coach.name,
+    coach.personality,
     selectedOption,
     actualReturn,
     finalAmount,
     performance,
     outcome,
     event,
-    realMetrics, // Add realMetrics as dependency
+    realMetrics,
+    loadingAiAdvice,
   ]);
+
+  // ============================================================================
+  // TYPING ANIMATION
+  // ============================================================================
 
   // Typing effect
   useEffect(() => {
@@ -410,13 +367,12 @@ You now speak the language of finance! 🎉`,
 
     let currentIndex = 0;
     const text = currentMessage.content;
-    const typingSpeed = 30; // milliseconds per character
 
     const typeNextChar = () => {
       if (currentIndex < text.length) {
         setDisplayedText(text.slice(0, currentIndex + 1));
         currentIndex++;
-        setTimeout(typeNextChar, typingSpeed);
+        setTimeout(typeNextChar, TYPING_SPEED);
       } else {
         setIsTyping(false);
         setShowContinue(true);
@@ -425,6 +381,10 @@ You now speak the language of finance! 🎉`,
 
     typeNextChar();
   }, [currentMessageIndex, messages]);
+
+  // ============================================================================
+  // EVENT HANDLERS
+  // ============================================================================
 
   const handleContinue = () => {
     if (currentMessageIndex < messages.length - 1) {
@@ -436,8 +396,54 @@ You now speak the language of finance! 🎉`,
     onComplete();
   };
 
+  // ============================================================================
+  // RENDER HELPERS
+  // ============================================================================
+
   const currentMessage = messages[currentMessageIndex];
   if (!currentMessage) return null;
+
+  const renderMetricsCard = (
+    icon: React.ReactNode,
+    label: string,
+    value: string | number,
+    colorClass?: string
+  ) => (
+    <Card className="text-center p-4">
+      <div className="flex flex-col items-center gap-2">
+        {icon}
+        <div>
+          <p className="text-sm text-gray-600">{label}</p>
+          <p className={`text-xl font-bold ${colorClass || ""}`}>
+            {loadingMetrics ? "Loading..." : value}
+          </p>
+        </div>
+      </div>
+    </Card>
+  );
+
+  const renderMarkdownComponents = {
+    p: ({ children, ...props }: any) => <span {...props}>{children}</span>,
+    strong: ({ children, ...props }: any) => (
+      <strong className="font-bold text-blue-800" {...props}>
+        {children}
+      </strong>
+    ),
+    ul: ({ children, ...props }: any) => (
+      <ul className="list-disc list-inside space-y-1 mt-2" {...props}>
+        {children}
+      </ul>
+    ),
+    li: ({ children, ...props }: any) => (
+      <li className="text-gray-700" {...props}>
+        {children}
+      </li>
+    ),
+  };
+
+  // ============================================================================
+  // RENDER
+  // ============================================================================
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
@@ -458,22 +464,7 @@ You now speak the language of finance! 🎉`,
       {/* Dialogue Text */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
         <div className="text-gray-800 text-lg leading-relaxed prose prose-sm max-w-none">
-          <ReactMarkdown
-            components={{
-              p: ({ children }) => <span>{children}</span>,
-              strong: ({ children }) => (
-                <strong className="font-bold text-blue-800">{children}</strong>
-              ),
-              ul: ({ children }) => (
-                <ul className="list-disc list-inside space-y-1 mt-2">
-                  {children}
-                </ul>
-              ),
-              li: ({ children }) => (
-                <li className="text-gray-700">{children}</li>
-              ),
-            }}
-          >
+          <ReactMarkdown components={renderMarkdownComponents}>
             {displayedText}
           </ReactMarkdown>
           {isTyping && (
@@ -489,75 +480,43 @@ You now speak the language of finance! 🎉`,
             Key Investment Metrics
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="text-center p-4">
-              <div className="flex flex-col items-center gap-2">
-                <DollarSign className="h-6 w-6 text-green-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Final Value</p>
-                  <p className="text-xl font-bold">
-                    $
-                    {loadingMetrics
-                      ? "Loading..."
-                      : realMetrics
-                      ? realMetrics.final_value.toLocaleString()
-                      : finalAmount.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            </Card>
-            <Card className="text-center p-4">
-              <div className="flex flex-col items-center gap-2">
-                <TrendingUp className="h-6 w-6 text-green-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Total Return</p>
-                  <p
-                    className={`text-xl font-bold ${
-                      (realMetrics?.total_return || actualReturn) > 0
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {(realMetrics?.total_return || actualReturn) > 0 ? "+" : ""}
-                    {loadingMetrics
-                      ? "Loading..."
-                      : realMetrics && realMetrics.total_return !== undefined
-                      ? realMetrics.total_return.toFixed(2)
-                      : actualReturn}
-                    %
-                  </p>
-                </div>
-              </div>
-            </Card>
-            <Card className="text-center p-4">
-              <div className="flex flex-col items-center gap-2">
-                <BarChart3 className="h-6 w-6 text-blue-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Volatility</p>
-                  <p className="text-xl font-bold">
-                    {loadingMetrics
-                      ? "Loading..."
-                      : realMetrics
-                      ? `${realMetrics.volatility.toFixed(2)}%`
-                      : "16.26%"}
-                  </p>
-                </div>
-              </div>
-            </Card>
-            <Card className="text-center p-4">
-              <div className="flex flex-col items-center gap-2">
-                <Shield className="h-6 w-6 text-purple-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Sharpe Ratio</p>
-                  <p className="text-xl font-bold">
-                    {loadingMetrics
-                      ? "Loading..."
-                      : realMetrics
-                      ? realMetrics.sharpe_ratio.toFixed(2)
-                      : "0.10"}
-                  </p>
-                </div>
-              </div>
-            </Card>
+            {renderMetricsCard(
+              <DollarSign className="h-6 w-6 text-green-600" />,
+              "Final Value",
+              `$${
+                loadingMetrics
+                  ? "Loading..."
+                  : realMetrics
+                  ? formatCurrency(realMetrics.final_value)
+                  : formatCurrency(finalAmount)
+              }`
+            )}
+            {renderMetricsCard(
+              <TrendingUp className="h-6 w-6 text-green-600" />,
+              "Total Return",
+              formatPercentage(realMetrics?.total_return || actualReturn),
+              (realMetrics?.total_return || actualReturn) > 0
+                ? "text-green-600"
+                : "text-red-600"
+            )}
+            {renderMetricsCard(
+              <BarChart3 className="h-6 w-6 text-blue-600" />,
+              "Volatility",
+              loadingMetrics
+                ? "Loading..."
+                : realMetrics
+                ? `${realMetrics.volatility.toFixed(2)}%`
+                : "16.26%"
+            )}
+            {renderMetricsCard(
+              <Shield className="h-6 w-6 text-purple-600" />,
+              "Sharpe Ratio",
+              loadingMetrics
+                ? "Loading..."
+                : realMetrics
+                ? realMetrics.sharpe_ratio.toFixed(2)
+                : "0.10"
+            )}
           </div>
         </div>
       )}

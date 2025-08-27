@@ -89,13 +89,13 @@ export function MissionModal({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-serif text-2xl flex items-center gap-2">
-            {missionStep === "result" && missionResult && (
-              missionResult.performance === "profit" ? (
+            {missionStep === "result" &&
+              missionResult &&
+              (missionResult.performance === "profit" ? (
                 <CheckCircle className="h-6 w-6 text-green-500" />
               ) : (
                 <AlertTriangle className="h-6 w-6 text-red-500" />
-              )
-            )}
+              ))}
             {getDialogTitle()}
           </DialogTitle>
           <DialogDescription className="text-base">
@@ -117,7 +117,9 @@ export function MissionModal({
             options={missionData.options}
             selectedInvestment={selectedInvestment}
             onInvestmentSelect={onInvestmentSelect}
-            onConfirm={() => selectedInvestment && onInvestmentConfirm(selectedInvestment)}
+            onConfirm={() =>
+              selectedInvestment && onInvestmentConfirm(selectedInvestment)
+            }
             onBack={() => onStepChange("intro")}
           />
         )}
@@ -133,6 +135,7 @@ export function MissionModal({
             simulationResult={simulationResult}
             playerLevel={playerLevel}
             completedMissions={completedMissions}
+            selectedCoach={selectedCoach} // Pass the selected coach
             onComplete={onMissionComplete}
           />
         )}
