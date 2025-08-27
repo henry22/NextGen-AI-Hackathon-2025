@@ -25,6 +25,7 @@ from services.rebalance_service import RebalanceService
 from services.yield_sim_service import YieldSimService
 from services.coach_service import CoachService
 from services.leaderboard_service import LeaderboardService
+from services.investment_metrics_service import InvestmentMetricsService
 
 app = FastAPI(
     title="Legacy Guardians API",
@@ -271,6 +272,54 @@ async def get_leaderboard(
     """Get top players from leaderboard"""
     leaderboard_service = LeaderboardService()
     return await leaderboard_service.get_top_players(season, limit, db)
+
+# Real historical data endpoints
+
+
+@app.get("/investment-metrics/{ticker}")
+async def get_investment_metrics(
+    ticker: str,
+    start_date: str,
+    end_date: str,
+    initial_investment: float = 100000
+):
+    """Get real investment metrics from historical data"""
+    investment_metrics_service = InvestmentMetricsService()
+    return await investment_metrics_service.calculate_investment_metrics(
+        ticker=ticker,
+        start_date=start_date,
+        end_date=end_date,
+        initial_investment=initial_investment
+    )
+
+
+@app.get("/historical-performance/{ticker}/{event_year}")
+async def get_historical_performance(
+    ticker: str,
+    event_year: int
+):
+    """Get performance for a specific historical event"""
+    investment_metrics_service = InvestmentMetricsService()
+    return await investment_metrics_service.calculate_historical_performance(
+        ticker=ticker,
+        event_year=event_year
+    )
+
+
+@app.get("/asset-comparison")
+async def get_asset_comparison(
+    assets: str,
+    start_date: str,
+    end_date: str
+):
+    """Compare performance of multiple assets"""
+    asset_list = assets.split(",")
+    investment_metrics_service = InvestmentMetricsService()
+    return await investment_metrics_service.get_asset_performance_comparison(
+        assets=asset_list,
+        start_date=start_date,
+        end_date=end_date
+    )
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
