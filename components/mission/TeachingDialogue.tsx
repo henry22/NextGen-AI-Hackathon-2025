@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { PerformanceChart } from "@/components/PerformanceChart";
 import { api, InvestmentMetrics } from "@/lib/api";
+import ReactMarkdown from "react-markdown";
 
 interface TeachingDialogueProps {
   coach: {
@@ -45,8 +46,11 @@ interface TeachingMessage {
     | "greeting"
     | "result"
     | "metrics"
+    | "metrics_detail"
     | "chart"
+    | "chart_reading"
     | "analysis"
+    | "risk_detail"
     | "lesson"
     | "completion";
   content: string;
@@ -148,45 +152,211 @@ export function TeachingDialogue({
         showContinue: true,
       });
 
-      // Key metrics explanation
+      // Financial terms introduction
       newMessages.push({
-        id: "metrics",
+        id: "terms_intro",
         type: "metrics",
-        content: `Let me show you some key metrics that help us understand your investment performance. These numbers tell us the story of your investment journey.`,
+        content: `Before we look at your results, let me teach you some important financial terms that every young investor should know. These might sound complicated, but I'll explain them in simple language!`,
         showContinue: true,
         showMetrics: true,
       });
 
-      // Chart explanation
+      // Key metrics explanation - Enhanced educational content
+      newMessages.push({
+        id: "metrics",
+        type: "metrics",
+        content: `Now let's look at your investment report card! These numbers tell us exactly how well your $100,000 performed during this investment period. Each number has a special meaning that helps us understand your investment journey.`,
+        showContinue: true,
+        showMetrics: true,
+      });
+
+      // Detailed metrics explanation - Enhanced for young learners
+      newMessages.push({
+        id: "metrics_detail",
+        type: "metrics_detail",
+        content: `Let me explain these financial terms in simple language that you'll understand:
+
+• **Final Value**: 
+  This is exactly how much money you have at the end of your investment period. If you started with $100,000 and now you have $61,604, that's your Final Value. It's like checking your bank account balance after a year of investing!
+
+• **Total Return**: 
+  This percentage tells you if you made money or lost money overall. If it's positive (like +5%), you made money. If it's negative (like -38.40%), you lost money. Think of it as your investment's report card grade - A+ for big gains, F for losses!
+
+• **Volatility**: 
+  This measures how much your investment value jumped up and down during the period. High volatility (like 32.82%) means your money went on a wild roller coaster ride - lots of ups and downs! Low volatility means a smooth, gentle boat ride. Think of it as how "bumpy" your investment journey was.
+
+• **Sharpe Ratio**: 
+  This is like a "bang for your buck" score. It tells you if the risk you took was worth the reward you got. A positive number means you got good returns for the risk. A negative number (like -1.41) means the risk wasn't worth it. It's like asking "Was this roller coaster worth the scary parts?"`,
+        showContinue: true,
+        showMetrics: true,
+      });
+
+      // Chart explanation - Enhanced educational content
       newMessages.push({
         id: "chart",
         type: "chart",
-        content: `Now, let's look at your portfolio performance over time. This chart shows how your investment value changed throughout the period. See those ups and downs? That's normal in investing!`,
+        content: `Now let's look at your investment journey over time! This chart is like a storybook of your money's adventure. The line shows how your $100,000 grew (or shrank) day by day.`,
         showContinue: true,
         showChart: true,
       });
 
-      // Risk analysis
+      // Chart reading lesson - Enhanced for young learners
+      newMessages.push({
+        id: "chart_reading",
+        type: "chart_reading",
+        content: `Now let me teach you how to read these charts like a financial expert! These charts are like storybooks of your money's adventure:
+
+**Portfolio Performance (Annual) Chart:**
+This chart shows how your $100,000 changed over time, year by year. Think of it as a timeline of your money's journey!
+
+• **Upward slope**: When the line goes up, your money is growing! The steeper the line, the faster your money is multiplying. It's like watching your savings grow!
+
+• **Downward slope**: When the line goes down, your investment value is decreasing. Don't panic - this is completely normal! Even the best investments have bad days.
+
+• **Flat line**: When the line is horizontal, your investment is stable - not growing much, but not losing much either. It's like parking your money safely.
+
+• **Bumps and dips**: These small ups and downs show daily market movements. Markets are like the weather - sometimes sunny (up), sometimes rainy (down)!
+
+**Annual Returns Chart:**
+This chart shows the percentage return for each year. It's like a year-by-year report card of your investment performance!
+
+• **Positive bars**: Good years when your investment made money
+• **Negative bars**: Tough years when your investment lost money
+• **The trend**: Look at the overall pattern - are there more good years than bad years?
+
+**Key Lesson**: The overall trend is what matters most, not the daily ups and downs. Think long-term!`,
+        showContinue: true,
+        showChart: true,
+      });
+
+      // Risk analysis - Enhanced educational content
       newMessages.push({
         id: "analysis",
         type: "analysis",
-        content: `Finally, let's talk about risk. Every investment has risk, and understanding it helps you make better decisions. Let me explain what these risk metrics mean for you.`,
+        content: `Now let's talk about risk - this is super important for young investors! Risk isn't always bad - it's like the price we pay for the chance to grow our money. Let me explain these risk metrics.`,
         showContinue: true,
         showAnalysis: true,
       });
 
-      // Educational lesson
+      // Risk metrics explanation - Enhanced for young learners
       newMessages.push({
-        id: "lesson",
+        id: "risk_detail",
+        type: "risk_detail",
+        content: `Now let me explain these risk terms in simple language that makes sense:
+
+**Maximum Drawdown:**
+This is the biggest drop your investment ever experienced from its highest point. Think of it like the deepest dip on a roller coaster ride!
+
+• **What it means**: If your investment was worth $100,000 at its peak, but dropped to $52,240 at its lowest point, that's a -47.76% drawdown.
+• **Real example**: It's like if you had $100 in your pocket, but at some point you only had $52.24 left - that's scary!
+• **Why it matters**: This tells you the worst-case scenario you experienced. It helps you understand how much risk you can handle.
+
+**Risk-Adjusted Return - Sharpe Ratio:**
+This is like a "bang for your buck" score for your investment. It tells you if the risk you took was worth the reward you got.
+
+• **What it means**: A positive number (like +1.0) means you got good returns for the risk you took. A negative number (like -1.41) means the risk wasn't worth it.
+• **Real example**: It's like asking "Was this roller coaster worth the scary parts?" If you got a great view and fun experience, maybe it was worth it. If you just got scared and sick, maybe not!
+• **Why it matters**: This helps you choose investments that give you the best reward for the risk you're willing to take.
+
+**Key Lesson**: Understanding these risk numbers helps you make smarter investment choices and avoid investments that are too risky for you!`,
+        showContinue: true,
+        showAnalysis: true,
+      });
+
+      // Investment strategy lesson - Personalized by coach type
+      newMessages.push({
+        id: "strategy",
         type: "lesson",
         content:
-          performance === "profit"
-            ? `The ${event.title} taught us that ${
-                performance === "profit"
-                  ? "sometimes the safest choice pays off"
-                  : "even the best plans can face challenges"
-              }. Remember: diversification and patience are your best friends in investing.`
-            : `The ${event.title} showed us that markets can be unpredictable. This teaches us the importance of research, diversification, and not putting all our eggs in one basket.`,
+          coach.personality === "Conservative Coach"
+            ? `As your conservative coach, I want to emphasize the importance of steady, reliable investing! Here are my top lessons:
+
+• **Safety First**: Start with stable investments like bonds and blue-chip stocks. Think of it like building a house - you need a solid foundation first!
+
+• **Diversification**: Don't put all your money in one place. Spread it across different types of investments - like having different players on your team!
+
+• **Time in the market**: The longer you stay invested, the better your chances of success. Think of it like planting a tree - it takes time to grow!
+
+• **Research first**: Always understand what you're investing in before you put your money down. Knowledge is your best investment tool!`
+            : coach.personality === "Growth Coach"
+            ? `As your growth coach, I want to show you how to maximize your investment potential! Here are my key strategies:
+
+• **Growth Opportunities**: Look for investments with strong growth potential, but always balance with some safer options too!
+
+• **Diversification**: Don't put all your money in one place. Spread it across different types of investments - like having different players on your team!
+
+• **Time in the market**: The longer you stay invested, the better your chances of success. Think of it like planting a tree - it takes time to grow!
+
+• **Research first**: Always understand what you're investing in before you put your money down. Knowledge is your best investment tool!`
+            : `Now let's talk about what this teaches us about smart investing! Here are some key lessons every young investor should remember:
+
+• **Diversification**: Don't put all your money in one place. Spread it across different types of investments - like having different players on your team!
+
+• **Time in the market**: The longer you stay invested, the better your chances of success. Think of it like planting a tree - it takes time to grow!
+
+• **Risk vs Reward**: Higher potential returns usually come with higher risk. It's like choosing between a safe bike ride or an exciting roller coaster.
+
+• **Research first**: Always understand what you're investing in before you put your money down. Knowledge is your best investment tool!`,
+        showContinue: true,
+      });
+
+      // Practical tips
+      newMessages.push({
+        id: "tips",
+        type: "lesson",
+        content: `Here are some practical tips for young investors like you:
+
+• **Start small**: You don't need thousands to begin investing. Many platforms let you start with just $10!
+
+• **Set goals**: Know what you're saving for - a car, university, or your first home. Goals help you stay focused.
+
+• **Emergency fund first**: Before investing, save 3-6 months of expenses in a savings account. This is your safety net!
+
+• **Learn continuously**: Read about investing, follow financial news, and practice with games like this one.
+
+• **Don't panic**: Markets go up and down. Stay calm and stick to your plan!`,
+        showContinue: true,
+      });
+
+      // Financial knowledge summary
+      newMessages.push({
+        id: "knowledge_summary",
+        type: "lesson",
+        content: `🎓 Let's review all the financial terms you learned today! You're now a financial expert:
+
+**Investment Metrics:**
+✅ **Final Value**: How much money you have at the end
+✅ **Total Return**: Your profit or loss percentage
+✅ **Volatility**: How bumpy your investment ride was
+✅ **Sharpe Ratio**: Whether the risk was worth the reward
+
+**Charts:**
+✅ **Portfolio Performance (Annual)**: Your money's journey over time
+✅ **Annual Returns**: Year-by-year performance report card
+✅ **Upward/Downward slopes**: How to read investment trends
+✅ **Bumps and dips**: Understanding market movements
+
+**Risk Analysis:**
+✅ **Maximum Drawdown**: The biggest drop you experienced
+✅ **Risk-Adjusted Return**: Reward vs risk score
+
+You now speak the language of finance! 🎉`,
+        showContinue: true,
+      });
+
+      // Summary and completion
+      newMessages.push({
+        id: "summary",
+        type: "lesson",
+        content: `Let's recap what we learned today! You now understand:
+
+✅ **Investment Metrics**: How to read your investment report card
+✅ **Charts**: How to track your money's journey over time  
+✅ **Risk Analysis**: How to understand the ups and downs of investing
+✅ **Smart Strategies**: How to make better investment decisions
+✅ **Practical Tips**: How to start your real investment journey
+
+You're well on your way to becoming a confident young investor!`,
         showContinue: true,
       });
 
@@ -194,7 +364,7 @@ export function TeachingDialogue({
       newMessages.push({
         id: "completion",
         type: "completion",
-        content: `Excellent work! You've earned 150 XP and learned valuable investment lessons. Keep practicing, and you'll become a confident investor. Ready for your next challenge?`,
+        content: `🎉 Congratulations! You've earned 150 XP and completed this investment mission. You now have the knowledge to make smart financial decisions. Remember: every expert investor started exactly where you are now. Keep learning, keep practicing, and your financial future will be bright! Ready for your next challenge?`,
         showComplete: true,
       });
 
@@ -273,12 +443,29 @@ export function TeachingDialogue({
 
       {/* Dialogue Text */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <p className="text-gray-800 text-lg leading-relaxed">
-          {displayedText}
+        <div className="text-gray-800 text-lg leading-relaxed prose prose-sm max-w-none">
+          <ReactMarkdown
+            components={{
+              p: ({ children }) => <span>{children}</span>,
+              strong: ({ children }) => (
+                <strong className="font-bold text-blue-800">{children}</strong>
+              ),
+              ul: ({ children }) => (
+                <ul className="list-disc list-inside space-y-1 mt-2">
+                  {children}
+                </ul>
+              ),
+              li: ({ children }) => (
+                <li className="text-gray-700">{children}</li>
+              ),
+            }}
+          >
+            {displayedText}
+          </ReactMarkdown>
           {isTyping && (
             <span className="inline-block w-2 h-6 bg-blue-500 ml-1 animate-pulse"></span>
           )}
-        </p>
+        </div>
       </div>
 
       {/* Key Metrics Display */}
