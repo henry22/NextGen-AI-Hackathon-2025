@@ -137,6 +137,49 @@ class InvestmentMetricsService:
             "initial_investment": 100000.0
         }
 
+    def _get_historical_ticker(self, ticker: str, event_year: int) -> str:
+        """
+        Get the appropriate ticker for historical periods when some assets didn't exist
+        """
+        # Historical asset mapping for different periods
+        historical_mapping = {
+            "GLD": {  # Gold ETF - use different proxies for different periods
+                # S&P 500 as stable proxy (Gold data unreliable in 1990)
+                1990: "^GSPC",
+                2000: "^GSPC",  # S&P 500 as stable proxy
+                2008: "GLD",   # GLD ETF (created 2004)
+                2020: "GLD",   # GLD ETF
+                2025: "GLD",   # GLD ETF
+            },
+            "BTC-USD": {  # Bitcoin - use different proxies
+                1990: "^GSPC",  # S&P 500 as tech proxy (Bitcoin didn't exist)
+                2000: "^GSPC",  # S&P 500 as tech proxy
+                2008: "^GSPC",  # S&P 500 as tech proxy
+                2020: "BTC-USD",  # Bitcoin (available since 2014)
+                2025: "BTC-USD",  # Bitcoin
+            },
+            "ETH-USD": {  # Ethereum - use different proxies
+                1990: "^GSPC",  # S&P 500 as tech proxy (Ethereum didn't exist)
+                2000: "^GSPC",  # S&P 500 as tech proxy
+                2008: "^GSPC",  # S&P 500 as tech proxy
+                2020: "ETH-USD",  # Ethereum (available since 2017)
+                2025: "ETH-USD",  # Ethereum
+            },
+            "UUP": {  # US Dollar ETF - use different proxies
+                # S&P 500 as currency proxy (USD data unreliable)
+                1990: "^GSPC",
+                2000: "^GSPC",  # S&P 500 as currency proxy
+                2008: "UUP",     # UUP ETF (created 2007)
+                2020: "UUP",     # UUP ETF
+                2025: "UUP",     # UUP ETF
+            }
+        }
+
+        # Return the appropriate ticker for the event year, or original if not in mapping
+        if ticker in historical_mapping:
+            return historical_mapping[ticker].get(event_year, ticker)
+        return ticker
+
     async def calculate_historical_performance(
         self,
         ticker: str,
@@ -158,8 +201,11 @@ class InvestmentMetricsService:
         start_date, end_date = event_periods.get(
             event_year, ("1990-01-01", "1990-12-31"))
 
+        # Get the appropriate historical ticker
+        historical_ticker = self._get_historical_ticker(ticker, event_year)
+
         return await self.calculate_investment_metrics(
-            ticker=ticker,
+            ticker=historical_ticker,
             start_date=start_date,
             end_date=end_date,
             initial_investment=100000
