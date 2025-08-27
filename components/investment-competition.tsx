@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -132,7 +133,7 @@ const aiCoaches: AICoach[] = [
   {
     id: "conservative",
     name: "Steady Sam",
-    avatar: "🛡️",
+    avatar: "/avatars/conservative.png",
     style: "Conservative",
     description: "Focuses on risk control and stable returns",
     specialty: "Defensive investment strategies",
@@ -141,7 +142,7 @@ const aiCoaches: AICoach[] = [
   {
     id: "balanced",
     name: "Balanced Bella",
-    avatar: "⚖️",
+    avatar: "/avatars/balanced.png",
     style: "Balanced",
     description: "Finds the best balance between risk and return",
     specialty: "Diversified asset allocation",
@@ -150,7 +151,7 @@ const aiCoaches: AICoach[] = [
   {
     id: "aggressive",
     name: "Adventure Alex",
-    avatar: "🚀",
+    avatar: "/avatars/aggressive.png",
     style: "Aggressive",
     description: "Pursues high returns, willing to take risks",
     specialty: "Growth stocks and emerging markets",
@@ -159,7 +160,7 @@ const aiCoaches: AICoach[] = [
   {
     id: "tech",
     name: "Tech Taylor",
-    avatar: "🤖",
+    avatar: "/avatars/tech.png",
     style: "Tech-focused",
     description: "Specialises in tech stocks and innovative investments",
     specialty: "AI and tech trend analysis",
@@ -568,7 +569,13 @@ export default function InvestmentCompetition({
                 >
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{coach.avatar}</span>
+                      <Image
+                        src={coach.avatar}
+                        alt={coach.name}
+                        width={40}
+                        height={40}
+                        className="rounded-full"
+                      />
                       <div className="flex-1">
                         <CardTitle className="text-base">
                           {coach.name}

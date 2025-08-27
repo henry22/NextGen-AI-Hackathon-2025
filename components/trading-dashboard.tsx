@@ -1,5 +1,6 @@
 "use client";
 
+import Lottie from "lottie-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +29,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+
+import coachAnimation from "@/public/tech.json";
 
 interface Portfolio {
   [key: string]: {
@@ -291,9 +294,9 @@ export default function TradingDashboard({
           </Button>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-6">
+        <div className="grid lg:grid-cols-3 gap-6">
           {/* Portfolio Overview */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="lg:col-span-2 space-y-6">
             {/* Performance Summary */}
             <div className="grid md:grid-cols-4 gap-4">
               <Card className="bg-card border-border">
@@ -496,9 +499,20 @@ export default function TradingDashboard({
 
           {/* AI Coach Chat */}
           <div className="lg:col-span-1">
-            <Card className="bg-sidebar border-sidebar-border h-[600px] flex flex-col">
-              <CardHeader className="bg-sidebar-primary text-sidebar-primary-foreground">
-                <CardTitle className="flex items-center gap-2">
+            <Card className="bg-sidebar border-sidebar-border h-[800px] flex flex-col">
+              <CardHeader className="bg-sidebar-primary text-sidebar-primary-foreground flex flex-col items-center">
+                <div className="mb-2">
+                  <div className="h-40 w-40">
+                    <Lottie
+                      animationData={coachAnimation}
+                      loop
+                      autoplay
+                      style={{ width: "100%", height: "100%" }}
+                      aria-label="Animated coach"
+                    />
+                  </div>
+                </div>
+                <CardTitle className="flex items-center gap-2 justify-center">
                   <MessageCircle className="h-5 w-5" />
                   {selectedCoach.name}
                 </CardTitle>
