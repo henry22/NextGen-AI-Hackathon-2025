@@ -1,3 +1,17 @@
+from services.investment_metrics_service import InvestmentMetricsService
+from services.leaderboard_service import LeaderboardService
+from services.coach_service import CoachService
+from services.yield_sim_service import YieldSimService
+from services.rebalance_service import RebalanceService
+from services.optimization_service import OptimizationService
+from services.simulation_service import SimulationService
+from services.price_service import PriceService
+from models import (
+    PriceRequest, SimulationRequest, OptimizationRequest,
+    RebalanceRequest, YieldSimRequest, CoachRequest,
+    LeaderboardSubmit, LeaderboardResponse
+)
+from database import get_db, init_db
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -10,22 +24,12 @@ import sqlite3
 import yfinance as yf
 import json
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Import our modules
-from database import get_db, init_db
-from models import (
-    PriceRequest, SimulationRequest, OptimizationRequest,
-    RebalanceRequest, YieldSimRequest, CoachRequest,
-    LeaderboardSubmit, LeaderboardResponse
-)
-from services.price_service import PriceService
-from services.simulation_service import SimulationService
-from services.optimization_service import OptimizationService
-from services.rebalance_service import RebalanceService
-from services.yield_sim_service import YieldSimService
-from services.coach_service import CoachService
-from services.leaderboard_service import LeaderboardService
-from services.investment_metrics_service import InvestmentMetricsService
 
 app = FastAPI(
     title="Legacy Guardians API",

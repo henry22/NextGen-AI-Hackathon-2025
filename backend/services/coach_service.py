@@ -14,25 +14,55 @@ class CoachService:
         """Get personalized AI coach advice"""
 
         if not self.api_key:
-            # Return mock advice if no API key
+            print("❌ No OpenAI API key found - using mock advice")
             return await self._get_mock_advice(request)
+
+        print(f"🤖 Using OpenAI API for AI coach advice...")
+        print(f"📊 Player Level: {request.player_level}")
+        print(f"📊 Risk Tolerance: {request.risk_tolerance}")
+        print(f"📊 Investment Goal: {request.investment_goal}")
+        print(f"📊 Portfolio: {request.current_portfolio}")
 
         try:
             # Generate AI advice
             advice = await self._generate_ai_advice(request)
+            print("✅ Successfully generated AI advice!")
             return advice
         except Exception as e:
-            print(f"Error generating AI advice: {e}")
+            print(f"❌ Error generating AI advice: {e}")
+            print("🔄 Falling back to mock advice...")
             return await self._get_mock_advice(request)
 
     async def _generate_ai_advice(self, request: CoachRequest) -> CoachResponse:
         """Generate AI advice using OpenAI"""
 
-        # Create system prompt based on coach level
-        system_prompt = self._create_system_prompt(request.player_level)
+        print("🔧 Creating AI prompts...")
+
+        # Extract coach personality from player context
+        coach_personality = None
+        if request.player_context:
+            # Look for coach personality in the context
+            if "Conservative Coach" in request.player_context:
+                coach_personality = "Conservative Coach"
+            elif "Balanced Coach" in request.player_context:
+                coach_personality = "Balanced Coach"
+            elif "Aggressive Coach" in request.player_context:
+                coach_personality = "Aggressive Coach"
+            elif "Income Coach" in request.player_context:
+                coach_personality = "Income Coach"
+
+        print(f"🎯 Coach Personality: {coach_personality}")
+
+        # Create system prompt based on coach level and personality
+        system_prompt = self._create_system_prompt(
+            request.player_level, coach_personality)
+        print(f"📝 System prompt length: {len(system_prompt)} characters")
 
         # Create user prompt with context
         user_prompt = self._create_user_prompt(request)
+        print(f"📝 User prompt length: {len(user_prompt)} characters")
+
+        print("🚀 Calling OpenAI API...")
 
         # Call OpenAI API
         response = await openai.ChatCompletion.acreate(
@@ -46,12 +76,26 @@ class CoachService:
         )
 
         advice_text = response.choices[0].message.content
+        print(f"📄 Raw OpenAI response length: {len(advice_text)} characters")
+        print("="*60)
+        print("🤖 RAW OPENAI RESPONSE:")
+        print("="*60)
+        print(advice_text)
+        print("="*60)
 
         # Parse the response into structured format
-        return await self._parse_advice_response(advice_text, request)
+        parsed_response = await self._parse_advice_response(advice_text, request)
 
-    def _create_system_prompt(self, player_level: str) -> str:
-        """Create system prompt based on player level"""
+        print("📋 Parsed response:")
+        print(f"   Advice: {parsed_response.advice[:100]}...")
+        print(
+            f"   Recommendations: {len(parsed_response.recommendations)} items")
+        print(f"   Next Steps: {len(parsed_response.next_steps)} items")
+
+        return parsed_response
+
+    def _create_system_prompt(self, player_level: str, coach_personality: str = None) -> str:
+        """Create system prompt based on player level and coach personality"""
 
         base_prompt = """
         You are an AI financial coach for Australian teenagers aged 12-18. 
@@ -73,6 +117,57 @@ class CoachService:
         5. Educational insights (1-2 key concepts)
         6. Encouragement (motivational closing)
         """
+
+        # Add coach personality-specific guidance
+        if coach_personality:
+            if "Conservative" in coach_personality:
+                base_prompt += """
+                
+                Coach Style: Conservative Coach
+                Your approach emphasizes:
+                - Safety and stability first
+                - Bonds, gold, and defensive stocks
+                - Capital preservation
+                - Steady, reliable returns
+                - Risk-averse strategies
+                - Long-term wealth building through safe investments
+                """
+            elif "Balanced" in coach_personality:
+                base_prompt += """
+                
+                Coach Style: Balanced Coach
+                Your approach emphasizes:
+                - Mix of growth and stability
+                - Diversified asset allocation
+                - Moderate risk-taking
+                - Stocks, ETFs, and REITs
+                - Balanced risk-reward trade-offs
+                - Steady portfolio growth
+                """
+            elif "Aggressive" in coach_personality:
+                base_prompt += """
+                
+                Coach Style: Aggressive Coach
+                Your approach emphasizes:
+                - High-growth opportunities
+                - Crypto and growth stocks
+                - Higher risk for higher returns
+                - Innovation and emerging markets
+                - Capital appreciation focus
+                - Embracing volatility for growth
+                """
+            elif "Income" in coach_personality:
+                base_prompt += """
+                
+                Coach Style: Income Coach
+                Your approach emphasizes:
+                - Passive income generation
+                - Dividend-paying investments
+                - Compound interest effects
+                - Regular cash flow
+                - Income-focused strategies
+                - Building wealth through consistent returns
+                """
 
         if player_level == "beginner":
             return base_prompt + """
@@ -148,24 +243,86 @@ class CoachService:
     async def _parse_advice_response(self, advice_text: str, request: CoachRequest) -> CoachResponse:
         """Parse AI response into structured format"""
 
-        # Simple parsing - in production, you'd want more sophisticated parsing
-        lines = advice_text.split('\n')
+        print("🔍 Parsing OpenAI response...")
 
-        advice = lines[0] if lines else "Keep learning and stay diversified!"
+        # Split into sections
+        sections = advice_text.split('\n\n')
 
+        advice = ""
         recommendations = []
         next_steps = []
         risk_assessment = "Your portfolio shows good diversification."
         educational_insights = ["Diversification helps reduce risk"]
         encouragement = "You're doing great! Keep learning and practicing."
 
-        # Extract recommendations and next steps
-        for line in lines:
-            if line.strip().startswith('-') or line.strip().startswith('•'):
-                if 'recommend' in line.lower() or 'suggest' in line.lower():
-                    recommendations.append(line.strip()[1:].strip())
-                else:
-                    next_steps.append(line.strip()[1:].strip())
+        for section in sections:
+            section = section.strip()
+            if not section:
+                continue
+
+            # Extract main advice
+            if "**Main Advice:**" in section:
+                advice = section.replace("1. **Main Advice:**", "").strip()
+
+            # Extract recommendations
+            elif "**Key Recommendations:**" in section:
+                lines = section.split('\n')
+                for line in lines:
+                    line = line.strip()
+                    if line.startswith('-') or line.startswith('•'):
+                        rec = line.replace('-', '').replace('•', '').strip()
+                        if rec:
+                            recommendations.append(rec)
+
+            # Extract next steps
+            elif "**Next Steps:**" in section:
+                lines = section.split('\n')
+                for line in lines:
+                    line = line.strip()
+                    if line.startswith('-') or line.startswith('•'):
+                        step = line.replace('-', '').replace('•', '').strip()
+                        if step:
+                            next_steps.append(step)
+
+            # Extract risk assessment
+            elif "**Risk Assessment:**" in section:
+                risk_assessment = section.replace(
+                    "4. **Risk Assessment:**", "").strip()
+
+            # Extract educational insights
+            elif "**Educational Insights:**" in section:
+                lines = section.split('\n')
+                insights = []
+                for line in lines:
+                    line = line.strip()
+                    if line.startswith('-') or line.startswith('•'):
+                        insight = line.replace(
+                            '-', '').replace('•', '').strip()
+                        if insight:
+                            insights.append(insight)
+                if insights:
+                    educational_insights = insights
+
+            # Extract encouragement
+            elif "**Encouragement:**" in section:
+                encouragement = section.replace(
+                    "6. **Encouragement:**", "").strip()
+
+        # Fallback if parsing didn't work well
+        if not advice:
+            advice = advice_text[:200] + \
+                "..." if len(advice_text) > 200 else advice_text
+
+        if not recommendations:
+            recommendations = ["Focus on diversification",
+                               "Learn about different asset classes"]
+
+        if not next_steps:
+            next_steps = ["Continue learning about investing",
+                          "Practice with different portfolios"]
+
+        print(
+            f"📋 Parsed: Advice={len(advice)} chars, Recs={len(recommendations)}, Steps={len(next_steps)}")
 
         return CoachResponse(
             advice=advice,
