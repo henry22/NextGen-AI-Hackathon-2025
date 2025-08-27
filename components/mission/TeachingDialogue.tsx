@@ -46,11 +46,8 @@ interface TeachingMessage {
     | "greeting"
     | "result"
     | "metrics"
-    | "metrics_detail"
     | "chart"
-    | "chart_reading"
     | "analysis"
-    | "risk_detail"
     | "lesson"
     | "completion";
   content: string;
@@ -123,6 +120,86 @@ export function TeachingDialogue({
     const generateDialogue = () => {
       const newMessages: TeachingMessage[] = [];
 
+      // Helper function to get dynamic content
+      const getDynamicContent = () => {
+        const finalValue = loadingMetrics
+          ? "Loading..."
+          : realMetrics
+          ? realMetrics.final_value.toLocaleString()
+          : finalAmount.toLocaleString();
+        const totalReturn = loadingMetrics
+          ? "Loading..."
+          : realMetrics
+          ? realMetrics.total_return.toFixed(2)
+          : actualReturn;
+        const volatility = loadingMetrics
+          ? "Loading..."
+          : realMetrics
+          ? realMetrics.volatility.toFixed(2)
+          : "16.26";
+        const volatilityType = loadingMetrics
+          ? "Loading..."
+          : realMetrics
+          ? realMetrics.volatility > 20
+            ? "High volatility"
+            : "Low volatility"
+          : "Low volatility";
+        const volatilityDescription = loadingMetrics
+          ? "Loading..."
+          : realMetrics
+          ? realMetrics.volatility > 20
+            ? "wild roller coaster ride"
+            : "smooth, gentle boat ride"
+          : "smooth, gentle boat ride";
+        const sharpeRatio = loadingMetrics
+          ? "Loading..."
+          : realMetrics
+          ? realMetrics.sharpe_ratio.toFixed(2)
+          : "0.10";
+        const sharpeType = loadingMetrics
+          ? "Loading..."
+          : realMetrics
+          ? realMetrics.sharpe_ratio > 0
+            ? "positive"
+            : "negative"
+          : "positive";
+        const sharpeDescription = loadingMetrics
+          ? "Loading..."
+          : realMetrics
+          ? realMetrics.sharpe_ratio > 0
+            ? "good returns for the risk"
+            : "the risk wasn't worth it"
+          : "good returns for the risk";
+        const maxDrawdown = loadingMetrics
+          ? "Loading..."
+          : realMetrics
+          ? realMetrics.max_drawdown.toFixed(2)
+          : "-19.56";
+        const drawdownValue = loadingMetrics
+          ? "Loading..."
+          : realMetrics
+          ? (
+              realMetrics.final_value *
+              (1 + realMetrics.max_drawdown / 100)
+            ).toLocaleString()
+          : "80,440";
+
+        return {
+          finalValue,
+          totalReturn,
+          volatility,
+          volatilityType,
+          volatilityDescription,
+          sharpeRatio,
+          sharpeType,
+          sharpeDescription,
+          maxDrawdown,
+          drawdownValue,
+        };
+      };
+
+      const dynamic = getDynamicContent();
+
       // Greeting
       newMessages.push({
         id: "greeting",
@@ -152,74 +229,36 @@ export function TeachingDialogue({
         showContinue: true,
       });
 
-      // Financial terms introduction
-      newMessages.push({
-        id: "terms_intro",
-        type: "metrics",
-        content: `Before we look at your results, let me teach you some important financial terms that every young investor should know. These might sound complicated, but I'll explain them in simple language!`,
-        showContinue: true,
-        showMetrics: true,
-      });
-
-      // Key metrics explanation - Enhanced educational content
+      // Combined metrics explanation
       newMessages.push({
         id: "metrics",
         type: "metrics",
-        content: `Now let's look at your investment report card! These numbers tell us exactly how well your $100,000 performed during this investment period. Each number has a special meaning that helps us understand your investment journey.`,
+        content: `Now let's look at your investment report card! These numbers tell us exactly how well your $100,000 performed. Let me explain what each one means:
+
+• **Final Value**: This is exactly how much money you have at the end. If you started with $100,000 and now have $${dynamic.finalValue}, that's your Final Value. It's like checking your bank account balance!
+
+• **Total Return**: This percentage tells you if you made money or lost money. If it's positive (like +5%), you made money. If it's negative (like ${dynamic.totalReturn}%), you lost money. Think of it as your investment's report card grade!
+
+• **Volatility**: This measures how much your investment value jumped up and down. ${dynamic.volatilityType} (${dynamic.volatility}%) means your money went on a ${dynamic.volatilityDescription}!
+
+• **Sharpe Ratio**: This is like a "bang for your buck" score. It tells you if the risk you took was worth the reward you got. A ${dynamic.sharpeType} number (${dynamic.sharpeRatio}) means ${dynamic.sharpeDescription}.`,
         showContinue: true,
         showMetrics: true,
       });
 
-      // Detailed metrics explanation - Enhanced for young learners
-      newMessages.push({
-        id: "metrics_detail",
-        type: "metrics_detail",
-        content: `Let me explain these financial terms in simple language that you'll understand:
-
-• **Final Value**: 
-  This is exactly how much money you have at the end of your investment period. If you started with $100,000 and now you have $61,604, that's your Final Value. It's like checking your bank account balance after a year of investing!
-
-• **Total Return**: 
-  This percentage tells you if you made money or lost money overall. If it's positive (like +5%), you made money. If it's negative (like -38.40%), you lost money. Think of it as your investment's report card grade - A+ for big gains, F for losses!
-
-• **Volatility**: 
-  This measures how much your investment value jumped up and down during the period. High volatility (like 32.82%) means your money went on a wild roller coaster ride - lots of ups and downs! Low volatility means a smooth, gentle boat ride. Think of it as how "bumpy" your investment journey was.
-
-• **Sharpe Ratio**: 
-  This is like a "bang for your buck" score. It tells you if the risk you took was worth the reward you got. A positive number means you got good returns for the risk. A negative number (like -1.41) means the risk wasn't worth it. It's like asking "Was this roller coaster worth the scary parts?"`,
-        showContinue: true,
-        showMetrics: true,
-      });
-
-      // Chart explanation - Enhanced educational content
+      // Combined chart explanation
       newMessages.push({
         id: "chart",
         type: "chart",
-        content: `Now let's look at your investment journey over time! This chart is like a storybook of your money's adventure. The line shows how your $100,000 grew (or shrank) day by day.`,
-        showContinue: true,
-        showChart: true,
-      });
+        content: `Now let's look at your investment journey over time! This chart shows how your $100,000 changed day by day. Here's how to read it like a pro:
 
-      // Chart reading lesson - Enhanced for young learners
-      newMessages.push({
-        id: "chart_reading",
-        type: "chart_reading",
-        content: `Now let me teach you how to read these charts like a financial expert! These charts are like storybooks of your money's adventure:
-
-**Portfolio Performance (Annual) Chart:**
-This chart shows how your $100,000 changed over time, year by year. Think of it as a timeline of your money's journey!
-
-• **Upward slope**: When the line goes up, your money is growing! The steeper the line, the faster your money is multiplying. It's like watching your savings grow!
-
-• **Downward slope**: When the line goes down, your investment value is decreasing. Don't panic - this is completely normal! Even the best investments have bad days.
-
-• **Flat line**: When the line is horizontal, your investment is stable - not growing much, but not losing much either. It's like parking your money safely.
-
-• **Bumps and dips**: These small ups and downs show daily market movements. Markets are like the weather - sometimes sunny (up), sometimes rainy (down)!
+**Portfolio Performance Chart:**
+• **Upward slope**: Your money is growing! The steeper the line, the faster it's multiplying.
+• **Downward slope**: Your investment value is decreasing. Don't panic - this is normal!
+• **Flat line**: Your investment is stable - not growing much, but not losing much either.
+• **Bumps and dips**: These show daily market movements. Markets are like the weather - sometimes sunny, sometimes rainy!
 
 **Annual Returns Chart:**
-This chart shows the percentage return for each year. It's like a year-by-year report card of your investment performance!
-
 • **Positive bars**: Good years when your investment made money
 • **Negative bars**: Tough years when your investment lost money
 • **The trend**: Look at the overall pattern - are there more good years than bad years?
@@ -229,36 +268,25 @@ This chart shows the percentage return for each year. It's like a year-by-year r
         showChart: true,
       });
 
-      // Risk analysis - Enhanced educational content
+      // Combined risk analysis
       newMessages.push({
         id: "analysis",
         type: "analysis",
-        content: `Now let's talk about risk - this is super important for young investors! Risk isn't always bad - it's like the price we pay for the chance to grow our money. Let me explain these risk metrics.`,
-        showContinue: true,
-        showAnalysis: true,
-      });
-
-      // Risk metrics explanation - Enhanced for young learners
-      newMessages.push({
-        id: "risk_detail",
-        type: "risk_detail",
-        content: `Now let me explain these risk terms in simple language that makes sense:
+        content: `Now let's talk about risk - this is super important for young investors! Here's what these risk numbers mean:
 
 **Maximum Drawdown:**
 This is the biggest drop your investment ever experienced from its highest point. Think of it like the deepest dip on a roller coaster ride!
 
-• **What it means**: If your investment was worth $100,000 at its peak, but dropped to $52,240 at its lowest point, that's a -47.76% drawdown.
-• **Real example**: It's like if you had $100 in your pocket, but at some point you only had $52.24 left - that's scary!
+• **What it means**: If your investment was worth $100,000 at its peak, but dropped to $${dynamic.drawdownValue} at its lowest point, that's a ${dynamic.maxDrawdown}% drawdown.
 • **Why it matters**: This tells you the worst-case scenario you experienced. It helps you understand how much risk you can handle.
 
-**Risk-Adjusted Return - Sharpe Ratio:**
+**Risk-Adjusted Return (Sharpe Ratio):**
 This is like a "bang for your buck" score for your investment. It tells you if the risk you took was worth the reward you got.
 
-• **What it means**: A positive number (like +1.0) means you got good returns for the risk you took. A negative number (like -1.41) means the risk wasn't worth it.
-• **Real example**: It's like asking "Was this roller coaster worth the scary parts?" If you got a great view and fun experience, maybe it was worth it. If you just got scared and sick, maybe not!
+• **What it means**: A ${dynamic.sharpeType} number (${dynamic.sharpeRatio}) means ${dynamic.sharpeDescription}.
 • **Why it matters**: This helps you choose investments that give you the best reward for the risk you're willing to take.
 
-**Key Lesson**: Understanding these risk numbers helps you make smarter investment choices and avoid investments that are too risky for you!`,
+**Key Lesson**: Understanding these risk numbers helps you make smarter investment choices!`,
         showContinue: true,
         showAnalysis: true,
       });
@@ -318,11 +346,11 @@ This is like a "bang for your buck" score for your investment. It tells you if t
         showContinue: true,
       });
 
-      // Financial knowledge summary
+      // Combined summary
       newMessages.push({
-        id: "knowledge_summary",
+        id: "summary",
         type: "lesson",
-        content: `🎓 Let's review all the financial terms you learned today! You're now a financial expert:
+        content: `🎓 Let's review what you learned today! You're now a financial expert:
 
 **Investment Metrics:**
 ✅ **Final Value**: How much money you have at the end
@@ -330,33 +358,19 @@ This is like a "bang for your buck" score for your investment. It tells you if t
 ✅ **Volatility**: How bumpy your investment ride was
 ✅ **Sharpe Ratio**: Whether the risk was worth the reward
 
-**Charts:**
-✅ **Portfolio Performance (Annual)**: Your money's journey over time
+**Charts & Risk:**
+✅ **Portfolio Performance**: Your money's journey over time
 ✅ **Annual Returns**: Year-by-year performance report card
-✅ **Upward/Downward slopes**: How to read investment trends
-✅ **Bumps and dips**: Understanding market movements
-
-**Risk Analysis:**
 ✅ **Maximum Drawdown**: The biggest drop you experienced
 ✅ **Risk-Adjusted Return**: Reward vs risk score
 
+**Smart Strategies:**
+✅ **Diversification**: Don't put all your money in one place
+✅ **Time in the market**: The longer you stay invested, the better
+✅ **Research first**: Always understand what you're investing in
+✅ **Start small**: You can begin with just $10!
+
 You now speak the language of finance! 🎉`,
-        showContinue: true,
-      });
-
-      // Summary and completion
-      newMessages.push({
-        id: "summary",
-        type: "lesson",
-        content: `Let's recap what we learned today! You now understand:
-
-✅ **Investment Metrics**: How to read your investment report card
-✅ **Charts**: How to track your money's journey over time  
-✅ **Risk Analysis**: How to understand the ups and downs of investing
-✅ **Smart Strategies**: How to make better investment decisions
-✅ **Practical Tips**: How to start your real investment journey
-
-You're well on your way to becoming a confident young investor!`,
         showContinue: true,
       });
 
