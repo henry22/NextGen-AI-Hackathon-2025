@@ -1,5 +1,12 @@
 import React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Image from "next/image";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Users } from "lucide-react";
 import { AICoach } from "@/components/data/coaches";
 
@@ -9,7 +16,11 @@ interface CoachSidebarProps {
   onCoachSelect: (coach: AICoach) => void;
 }
 
-export function CoachSidebar({ coaches, selectedCoach, onCoachSelect }: CoachSidebarProps) {
+export function CoachSidebar({
+  coaches,
+  selectedCoach,
+  onCoachSelect,
+}: CoachSidebarProps) {
   return (
     <Card>
       <CardHeader>
@@ -31,7 +42,13 @@ export function CoachSidebar({ coaches, selectedCoach, onCoachSelect }: CoachSid
             onClick={() => onCoachSelect(coach)}
           >
             <div className="flex items-center gap-3">
-              <span className="text-2xl">{coach.avatar}</span>
+              <Image
+                src={coach.avatar}
+                alt={coach.name}
+                width={40}
+                height={40}
+                className="rounded-full"
+              />
               <div className="flex-1">
                 <p className="font-medium text-sm">{coach.name}</p>
                 <p className="text-xs text-muted-foreground">

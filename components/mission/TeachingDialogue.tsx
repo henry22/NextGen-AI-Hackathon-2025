@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -449,7 +450,15 @@ export function TeachingDialogue({
     <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
       {/* Coach Header */}
       <div className="flex items-center gap-3 mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-        <div className="text-3xl">{coach.avatar}</div>
+        <div className="relative w-12 h-12 shrink-0">
+          <Image
+            src={coach.avatar}
+            alt={coach.name}
+            fill
+            sizes="48px"
+            className="rounded-full object-cover"
+          />
+        </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h3 className="font-bold text-lg">{coach.name}</h3>

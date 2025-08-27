@@ -32,3 +32,8 @@ next-env.d.ts
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Ignore all SQLite database files
+*.db
+*.db-wal
+*.db-shm

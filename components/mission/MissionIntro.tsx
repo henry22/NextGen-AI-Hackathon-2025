@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, DollarSign, ArrowRight } from "lucide-react";
@@ -12,11 +13,11 @@ interface MissionIntroProps {
   onExit: () => void;
 }
 
-export function MissionIntro({ 
-  missionData, 
-  selectedCoach, 
-  onNext, 
-  onExit 
+export function MissionIntro({
+  missionData,
+  selectedCoach,
+  onNext,
+  onExit,
 }: MissionIntroProps) {
   return (
     <div className="space-y-6">
@@ -26,9 +27,7 @@ export function MissionIntro({
             <BookOpen className="h-5 w-5" />
             Historical Background
           </h4>
-          <p className="text-sm leading-relaxed">
-            {missionData.context}
-          </p>
+          <p className="text-sm leading-relaxed">{missionData.context}</p>
         </CardContent>
       </Card>
 
@@ -38,20 +37,25 @@ export function MissionIntro({
             <DollarSign className="h-5 w-5 text-primary" />
             Investment Situation
           </h4>
-          <p className="text-sm leading-relaxed">
-            {missionData.situation}
-          </p>
+          <p className="text-sm leading-relaxed">{missionData.situation}</p>
         </CardContent>
       </Card>
 
       <Card className="bg-accent/10">
         <CardContent className="pt-6">
           <h4 className="font-serif font-semibold mb-3 flex items-center gap-2">
-            <span className="text-2xl">{selectedCoach.avatar}</span>
+            <Image
+              src={selectedCoach.avatar}
+              alt={selectedCoach.name}
+              width={40}
+              height={40}
+              className="rounded-full"
+            />
             {selectedCoach.name}'s Advice
           </h4>
           <p className="text-sm leading-relaxed">
-            {missionData.coachAdvice[selectedCoach.id] || "No specific advice available."}
+            {missionData.coachAdvice[selectedCoach.id] ||
+              "No specific advice available."}
           </p>
         </CardContent>
       </Card>

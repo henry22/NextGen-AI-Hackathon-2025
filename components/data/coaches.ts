@@ -13,7 +13,7 @@ export const aiCoaches: AICoach[] = [
     name: "Steady Sam",
     personality: "Conservative Coach",
     description: "Specialises in bonds, gold, and stable investment strategies",
-    avatar: "🛡️",
+    avatar: "/avatars/conservative.png",
     color: "bg-blue-100 text-blue-800",
   },
   {
@@ -21,7 +21,7 @@ export const aiCoaches: AICoach[] = [
     name: "Growth Guru",
     personality: "Balanced Coach",
     description: "Balanced investment approach mixing stocks, ETFs, and REITs",
-    avatar: "⚖️",
+    avatar: "/avatars/balanced.png",
     color: "bg-green-100 text-green-800",
   },
   {
@@ -29,7 +29,7 @@ export const aiCoaches: AICoach[] = [
     name: "Adventure Alex",
     personality: "Aggressive Coach",
     description: "High-risk, high-reward crypto and growth stocks",
-    avatar: "🚀",
+    avatar: "/avatars/aggressive.png",
     color: "bg-purple-100 text-purple-800",
   },
   {
@@ -37,7 +37,7 @@ export const aiCoaches: AICoach[] = [
     name: "Yield Yoda",
     personality: "Income Coach",
     description: "Focuses on passive income and compound interest effects",
-    avatar: "💰",
+    avatar: "/avatars/master.png",
     color: "bg-yellow-100 text-yellow-800",
   },
 ];
