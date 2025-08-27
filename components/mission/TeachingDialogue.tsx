@@ -13,6 +13,7 @@ import {
   Shield,
 } from "lucide-react";
 import { PerformanceChart } from "@/components/PerformanceChart";
+import { api, InvestmentMetrics } from "@/lib/api";
 
 interface TeachingDialogueProps {
   coach: {
@@ -72,6 +73,46 @@ export function TeachingDialogue({
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showContinue, setShowContinue] = useState(false);
+  const [realMetrics, setRealMetrics] = useState<InvestmentMetrics | null>(
+    null
+  );
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
+
+  // Fetch real investment metrics
+  useEffect(() => {
+    const fetchRealMetrics = async () => {
+      setLoadingMetrics(true);
+      try {
+        // Map investment options to real tickers
+        const tickerMap: Record<string, string> = {
+          "Japanese Stocks": "^N225", // Nikkei 225
+          "Tokyo Real Estate": "^N225", // Using Nikkei as proxy
+          "US Treasury Bonds": "^TNX", // 10-year Treasury yield
+          Gold: "GLD", // Gold ETF
+          "US Dollar Cash": "UUP", // US Dollar ETF
+          "Australian Stocks": "^AXJO", // ASX 200
+          Bitcoin: "BTC-USD", // Bitcoin
+          Ethereum: "ETH-USD", // Ethereum
+        };
+
+        const ticker = tickerMap[selectedOption.name] || "^GSPC"; // Default to S&P 500
+
+        // Get event year from event title
+        const eventYear = parseInt(event.title.match(/\d{4}/)?.[0] || "1990");
+
+        // Fetch historical performance for the event period
+        const metrics = await api.getHistoricalPerformance(ticker, eventYear);
+        setRealMetrics(metrics);
+      } catch (error) {
+        console.error("Failed to fetch real metrics:", error);
+        // Fall back to simulation data
+      } finally {
+        setLoadingMetrics(false);
+      }
+    };
+
+    fetchRealMetrics();
+  }, [selectedOption.name, event.title]);
 
   // Generate comprehensive teaching dialogue
   useEffect(() => {
@@ -91,13 +132,19 @@ export function TeachingDialogue({
         id: "result",
         type: "result",
         content:
-          performance === "profit"
-            ? `Great news! Your ${
-                selectedOption.name
-              } investment earned you ${actualReturn}% return. You turned $100,000 into $${finalAmount.toLocaleString()}. That's solid performance!`
-            : `Your ${
-                selectedOption.name
-              } investment resulted in a ${actualReturn}% loss, reducing your $100,000 to $${finalAmount.toLocaleString()}. But don't worry - every investor learns from losses!`,
+          (realMetrics?.total_return || actualReturn) > 0
+            ? `Great news! Your ${selectedOption.name} investment earned you ${
+                realMetrics?.total_return?.toFixed(2) || actualReturn
+              }% return. You turned $100,000 into $${
+                realMetrics?.final_value?.toLocaleString() ||
+                finalAmount.toLocaleString()
+              }. That's solid performance!`
+            : `Your ${selectedOption.name} investment resulted in a ${
+                realMetrics?.total_return?.toFixed(2) || actualReturn
+              }% loss, reducing your $100,000 to $${
+                realMetrics?.final_value?.toLocaleString() ||
+                finalAmount.toLocaleString()
+              }. But don't worry - every investor learns from losses!`,
         showContinue: true,
       });
 
@@ -163,6 +210,7 @@ export function TeachingDialogue({
     performance,
     outcome,
     event,
+    realMetrics, // Add realMetrics as dependency
   ]);
 
   // Typing effect
@@ -246,7 +294,12 @@ export function TeachingDialogue({
                 <div>
                   <p className="text-sm text-gray-600">Final Value</p>
                   <p className="text-xl font-bold">
-                    ${finalAmount.toLocaleString()}
+                    $
+                    {loadingMetrics
+                      ? "Loading..."
+                      : realMetrics
+                      ? realMetrics.final_value.toLocaleString()
+                      : finalAmount.toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -258,13 +311,18 @@ export function TeachingDialogue({
                   <p className="text-sm text-gray-600">Total Return</p>
                   <p
                     className={`text-xl font-bold ${
-                      performance === "profit"
+                      (realMetrics?.total_return || actualReturn) > 0
                         ? "text-green-600"
                         : "text-red-600"
                     }`}
                   >
-                    {actualReturn > 0 ? "+" : ""}
-                    {actualReturn}%
+                    {(realMetrics?.total_return || actualReturn) > 0 ? "+" : ""}
+                    {loadingMetrics
+                      ? "Loading..."
+                      : realMetrics && realMetrics.total_return !== undefined
+                      ? realMetrics.total_return.toFixed(2)
+                      : actualReturn}
+                    %
                   </p>
                 </div>
               </div>
@@ -274,7 +332,13 @@ export function TeachingDialogue({
                 <BarChart3 className="h-6 w-6 text-blue-600" />
                 <div>
                   <p className="text-sm text-gray-600">Volatility</p>
-                  <p className="text-xl font-bold">16.26%</p>
+                  <p className="text-xl font-bold">
+                    {loadingMetrics
+                      ? "Loading..."
+                      : realMetrics
+                      ? `${realMetrics.volatility.toFixed(2)}%`
+                      : "16.26%"}
+                  </p>
                 </div>
               </div>
             </Card>
@@ -283,7 +347,13 @@ export function TeachingDialogue({
                 <Shield className="h-6 w-6 text-purple-600" />
                 <div>
                   <p className="text-sm text-gray-600">Sharpe Ratio</p>
-                  <p className="text-xl font-bold">0.10</p>
+                  <p className="text-xl font-bold">
+                    {loadingMetrics
+                      ? "Loading..."
+                      : realMetrics
+                      ? realMetrics.sharpe_ratio.toFixed(2)
+                      : "0.10"}
+                  </p>
                 </div>
               </div>
             </Card>
@@ -292,20 +362,34 @@ export function TeachingDialogue({
       )}
 
       {/* Performance Chart */}
-      {currentMessage.showChart && simulationResult && (
+      {currentMessage.showChart && (
         <div className="mb-6">
           <h4 className="font-semibold text-lg mb-4 text-gray-800">
             Portfolio Performance Over Time
           </h4>
           <Card className="p-4">
             <PerformanceChart
-              data={simulationResult.performance_chart || []}
+              data={
+                realMetrics?.chart_data?.map((item) => ({
+                  date: item.date,
+                  value: item.portfolio_value,
+                })) ||
+                simulationResult?.performance_chart?.dates?.map(
+                  (date: string, index: number) => ({
+                    date: date,
+                    value: simulationResult.performance_chart.values[index],
+                  })
+                ) ||
+                []
+              }
               initialValue={100000}
-              finalValue={finalAmount}
-              totalReturn={actualReturn}
-              volatility={0.1626}
-              sharpeRatio={0.1}
-              maxDrawdown={-0.1956}
+              finalValue={realMetrics?.final_value || finalAmount}
+              totalReturn={realMetrics?.total_return || actualReturn}
+              volatility={realMetrics ? realMetrics.volatility / 100 : 0.1626}
+              sharpeRatio={realMetrics?.sharpe_ratio || 0.1}
+              maxDrawdown={
+                realMetrics ? realMetrics.max_drawdown / 100 : -0.1956
+              }
             />
           </Card>
         </div>
@@ -321,7 +405,13 @@ export function TeachingDialogue({
             <Card className="p-4">
               <h5 className="font-medium mb-2">Maximum Drawdown</h5>
               <div className="bg-green-100 text-green-800 px-3 py-2 rounded-lg inline-block">
-                <span className="font-bold">-19.56%</span>
+                <span className="font-bold">
+                  {loadingMetrics
+                    ? "Loading..."
+                    : realMetrics
+                    ? `${realMetrics.max_drawdown.toFixed(2)}%`
+                    : "-19.56%"}
+                </span>
               </div>
               <p className="text-sm text-gray-600 mt-2">
                 Largest peak-to-trough decline during the period
@@ -330,7 +420,13 @@ export function TeachingDialogue({
             <Card className="p-4">
               <h5 className="font-medium mb-2">Risk-Adjusted Return</h5>
               <div className="bg-red-100 text-red-800 px-3 py-2 rounded-lg inline-block">
-                <span className="font-bold">0.10</span>
+                <span className="font-bold">
+                  {loadingMetrics
+                    ? "Loading..."
+                    : realMetrics
+                    ? realMetrics.sharpe_ratio.toFixed(2)
+                    : "0.10"}
+                </span>
               </div>
               <p className="text-sm text-gray-600 mt-2">
                 Return per unit of risk (Sharpe Ratio)

@@ -24,7 +24,9 @@ export default function FinancialTimelineGame() {
   const [currentPage, setCurrentPage] = useState<
     "timeline" | "competition" | "trading" | "results"
   >("timeline");
-  const [selectedEvent, setSelectedEvent] = useState<FinancialEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<FinancialEvent | null>(
+    null
+  );
   const [missionEvent, setMissionEvent] = useState<FinancialEvent | null>(null);
   const [selectedCoach, setSelectedCoach] = useState(aiCoaches[0]);
   const [gameStarted, setGameStarted] = useState(false);
@@ -112,26 +114,36 @@ export default function FinancialTimelineGame() {
     if (option) {
       setSelectedInvestment(optionId);
 
-      // Simulate investment using API
+      // Get real historical data instead of simulation
       try {
-        const simulationRequest = {
-          initial_capital: 100000,
-          asset_weights: {
-            [option.name]: 1.0, // 100% allocation to selected option
-          },
-          trading_type: "open" as const,
-          investment_goal: "balanced" as const,
-          time_horizon: 365,
+        // Map investment options to real tickers
+        const tickerMap: Record<string, string> = {
+          "Japanese Stocks": "^N225", // Nikkei 225
+          "Tokyo Real Estate": "^N225", // Using Nikkei as proxy
+          "US Treasury Bonds": "^TNX", // 10-year Treasury yield
+          Gold: "GLD", // Gold ETF
+          "US Dollar Cash": "UUP", // US Dollar ETF
+          "Australian Stocks": "^AXJO", // ASX 200
+          Bitcoin: "BTC-USD", // Bitcoin
+          Ethereum: "ETH-USD", // Ethereum
         };
 
-        const result = await withLoading(
-          api.simulateInvestment(simulationRequest),
+        const ticker = tickerMap[option.name] || "^GSPC"; // Default to S&P 500
+        const eventYear = parseInt(
+          missionEvent.title.match(/\d{4}/)?.[0] || "1990"
+        );
+
+        // Fetch real historical performance
+        const realData = await withLoading(
+          api.getHistoricalPerformance(ticker, eventYear),
           setApiLoading
         );
 
-        setSimulationResult(result);
+        setSimulationResult(realData);
       } catch (error) {
         setApiError(handleApiError(error));
+        // Fall back to option's default data
+        setSimulationResult(null);
       }
 
       setMissionResult({

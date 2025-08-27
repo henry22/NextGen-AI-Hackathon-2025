@@ -168,7 +168,7 @@ export function PerformanceChart({
                   totalReturn >= 0 ? "text-green-600" : "text-red-600"
                 }`}
               >
-                {formatPercentage(totalReturn * 100)}
+                {formatPercentage(totalReturn)}
               </p>
             </div>
           </CardContent>

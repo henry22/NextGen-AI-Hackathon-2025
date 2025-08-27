@@ -7,6 +7,26 @@ export interface PriceData {
   timestamp: string;
 }
 
+export interface InvestmentMetrics {
+  total_return: number;
+  final_value: number;
+  volatility: number;
+  sharpe_ratio: number;
+  max_drawdown: number;
+  annualized_return: number;
+  chart_data: Array<{
+    date: string;
+    portfolio_value: number;
+    price: number;
+    volume: number;
+  }>;
+  data_points: number;
+  start_date: string;
+  end_date: string;
+  ticker: string;
+  initial_investment: number;
+}
+
 export interface SimulationRequest {
   initial_capital: number;
   asset_weights: Record<string, number>;
@@ -213,6 +233,47 @@ export const api = {
       }),
     });
     if (!response.ok) throw new Error("Yield simulation failed");
+    return response.json();
+  },
+
+  // Get real investment metrics
+  async getInvestmentMetrics(
+    ticker: string,
+    start_date: string,
+    end_date: string,
+    initial_investment: number = 100000
+  ): Promise<InvestmentMetrics> {
+    const response = await fetch(
+      `${API_BASE}/investment-metrics/${ticker}?start_date=${start_date}&end_date=${end_date}&initial_investment=${initial_investment}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch investment metrics");
+    return response.json();
+  },
+
+  // Get historical performance for specific event
+  async getHistoricalPerformance(
+    ticker: string,
+    event_year: number
+  ): Promise<InvestmentMetrics> {
+    const response = await fetch(
+      `${API_BASE}/historical-performance/${ticker}/${event_year}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch historical performance");
+    return response.json();
+  },
+
+  // Compare multiple assets
+  async getAssetComparison(
+    assets: string[],
+    start_date: string,
+    end_date: string
+  ): Promise<Record<string, InvestmentMetrics>> {
+    const response = await fetch(
+      `${API_BASE}/asset-comparison?assets=${assets.join(
+        ","
+      )}&start_date=${start_date}&end_date=${end_date}`
+    );
+    if (!response.ok) throw new Error("Failed to fetch asset comparison");
     return response.json();
   },
 };
