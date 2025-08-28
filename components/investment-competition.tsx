@@ -186,7 +186,7 @@ export default function InvestmentCompetition({
   const [selectedCoach, setSelectedCoach] = useState<AICoach | null>(null);
   const [totalAllocated, setTotalAllocated] = useState(0);
 
-  const startingCapital = 1000;
+  const startingCapital = 5000;
 
   const updateAllocation = (optionId: string, amount: number) => {
     // 限制 amount 不超过剩余可用资金 + 原来这个 option 的值
@@ -258,7 +258,7 @@ export default function InvestmentCompetition({
               Investment Competition
             </h1>
             <p className="text-muted-foreground">
-              Use your $1,000 starting capital to begin your investment journey
+              Use your $5,000 starting capital to begin your investment journey
             </p>
           </div>
           <div className="w-24" /> {/* Spacer */}
