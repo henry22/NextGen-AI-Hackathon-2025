@@ -1,12 +1,9 @@
 "use client";
 
-import Lottie from "lottie-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   ArrowLeft,
   DollarSign,
@@ -30,7 +27,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import coachAnimation from "@/public/tech.json";
+import CoachChat from "@/components/CoachChat/CoachChat";
 
 interface Portfolio {
   [key: string]: {
@@ -99,8 +96,41 @@ export default function TradingDashboard({
 
   // Mock portfolio performance data
   const [performanceData, setPerformanceData] = useState([
-    { day: 1, value: 1000, return: 0 },
+    { time: 0, value: 1000, return: 0 }, // time=0 表示 00:00
   ]);
+
+  // mock performance data
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPerformanceData((prev) => {
+        const last = prev[prev.length - 1];
+        const nextHour = last.time + 1; // 每次增加 1 小时
+        const randomFactor = 1 + (Math.random() * 0.1 - 0.05); // ±5%
+        const nextValue = last.value * randomFactor;
+
+        return [
+          ...prev,
+          {
+            time: nextHour,
+            value: Math.max(0, Math.min(1200, nextValue)), // 限制在 0~1200
+            return: ((nextValue - 1000) / 1000) * 100,
+          },
+        ];
+      });
+    }, 10000); // 每 5 秒钟模拟 1 小时
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const hourlyTicks = useMemo(() => {
+    if (performanceData.length === 0) return [0];
+    const maxHour = performanceData[performanceData.length - 1].time;
+    const ticks: number[] = [];
+    for (let h = 0; h <= maxHour; h++) {
+      ticks.push(h);
+    }
+    return ticks;
+  }, [performanceData]);
 
   // Initialize portfolio from allocations
   useEffect(() => {
@@ -388,9 +418,22 @@ export default function TradingDashboard({
                       strokeDasharray="3 3"
                       stroke="var(--border)"
                     />
-                    <XAxis dataKey="day" stroke="var(--muted-foreground)" />
-                    <YAxis stroke="var(--muted-foreground)" />
+                    {/* 用时间戳做横轴 */}
+                    <XAxis
+                      dataKey="time"
+                      type="number"
+                      domain={[0, "dataMax"]}
+                      ticks={hourlyTicks}
+                      tickFormatter={(h) => `${String(h).padStart(2, "0")}:00`} // 00:00, 01:00...
+                      stroke="var(--muted-foreground)"
+                    />
+                    {/* 固定纵轴 0~1400 */}
+                    <YAxis
+                      domain={[0, 1400]}
+                      stroke="var(--muted-foreground)"
+                    />
                     <Tooltip
+                      labelFormatter={(t) => new Date(t).toLocaleTimeString()}
                       contentStyle={{
                         backgroundColor: "var(--card)",
                         border: "1px solid var(--border)",
@@ -403,6 +446,7 @@ export default function TradingDashboard({
                       stroke="var(--primary)"
                       strokeWidth={2}
                       dot={{ fill: "var(--primary)" }}
+                      isAnimationActive={false}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -499,75 +543,13 @@ export default function TradingDashboard({
 
           {/* AI Coach Chat */}
           <div className="lg:col-span-1">
-            <Card className="bg-sidebar border-sidebar-border h-[800px] flex flex-col">
-              <CardHeader className="bg-sidebar-primary text-sidebar-primary-foreground flex flex-col items-center">
-                <div className="mb-2">
-                  <div className="h-40 w-40">
-                    <Lottie
-                      animationData={coachAnimation}
-                      loop
-                      autoplay
-                      style={{ width: "100%", height: "100%" }}
-                      aria-label="Animated coach"
-                    />
-                  </div>
-                </div>
-                <CardTitle className="flex items-center gap-2 justify-center">
-                  <MessageCircle className="h-5 w-5" />
-                  {selectedCoach.name}
-                </CardTitle>
-                <p className="text-sm opacity-90">
-                  {selectedCoach.style} Investment Coach
-                </p>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col p-0">
-                <ScrollArea className="flex-1 p-4">
-                  <div className="space-y-4">
-                    {chatMessages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${
-                          msg.sender === "user"
-                            ? "justify-end"
-                            : "justify-start"
-                        }`}
-                      >
-                        <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
-                            msg.sender === "user"
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          <p className="text-sm">{msg.message}</p>
-                          <p className="text-xs opacity-70 mt-1">
-                            {msg.timestamp.toLocaleTimeString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-                <div className="p-4 border-t border-sidebar-border">
-                  <div className="flex gap-2">
-                    <Input
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      placeholder="Ask your AI coach..."
-                      onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-                      className="bg-input border-border"
-                    />
-                    <Button
-                      onClick={sendMessage}
-                      size="sm"
-                      className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <CoachChat
+              selectedCoach={selectedCoach}
+              chatMessages={chatMessages}
+              newMessage={newMessage}
+              setNewMessage={setNewMessage}
+              sendMessage={sendMessage}
+            />
           </div>
         </div>
       </div>
