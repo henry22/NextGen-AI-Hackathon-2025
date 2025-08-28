@@ -184,16 +184,19 @@ export default function InvestmentCompetition({
   const startingCapital = 1000;
 
   const updateAllocation = (optionId: string, amount: number) => {
-    const newAllocations = { ...allocations, [optionId]: amount };
+    // 限制 amount 不超过剩余可用资金 + 原来这个 option 的值
+    const maxAllowed =
+      startingCapital - totalAllocated + (allocations[optionId] || 0);
+    const safeAmount = Math.min(amount, maxAllowed);
+
+    const newAllocations = { ...allocations, [optionId]: safeAmount };
     const newTotal = Object.values(newAllocations).reduce(
       (sum, val) => sum + val,
       0
     );
 
-    if (newTotal <= startingCapital) {
-      setAllocations(newAllocations);
-      setTotalAllocated(newTotal);
-    }
+    setAllocations(newAllocations);
+    setTotalAllocated(newTotal);
   };
 
   const remainingCapital = startingCapital - totalAllocated;
@@ -370,9 +373,7 @@ export default function InvestmentCompetition({
                               onValueChange={(value) =>
                                 updateAllocation(option.id, value[0])
                               }
-                              max={
-                                remainingCapital + (allocations[option.id] || 0)
-                              }
+                              max={startingCapital}
                               step={10}
                               className="w-full"
                             />
@@ -560,7 +561,7 @@ export default function InvestmentCompetition({
               {aiCoaches.map((coach) => (
                 <Card
                   key={coach.id}
-                  className={`cursor-pointer transition-all hover:shadow-lg ${
+                  className={`cursor-pointer transition-transform duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg ${
                     selectedCoach?.id === coach.id
                       ? "ring-2 ring-primary bg-primary/5"
                       : ""
