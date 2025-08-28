@@ -22,6 +22,7 @@ interface AICoach {
   name: string;
   avatar: string;
   style: string;
+  gif?: string;
 }
 
 interface CoachChatProps {
@@ -43,13 +44,11 @@ export default function CoachChat({
     <Card className="bg-sidebar border-sidebar-border h-[800px] flex flex-col">
       <CardHeader className="bg-sidebar-primary text-sidebar-primary-foreground flex flex-col items-center">
         <div className="mb-2">
-          <div className="h-40 w-40">
-            <Lottie
-              animationData={coachAnimation}
-              loop
-              autoplay
-              style={{ width: "100%", height: "100%" }}
-              aria-label="Animated coach"
+          <div className="h-40 w-40 rounded-full bg-white flex items-center justify-center overflow-hidden">
+            <img
+              src={selectedCoach.gif}
+              alt={`${selectedCoach.name} gif`}
+              className="w-full h-full object-contain rounded-full"
             />
           </div>
         </div>
