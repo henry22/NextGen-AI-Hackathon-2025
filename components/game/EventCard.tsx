@@ -15,6 +15,8 @@ import {
   Trophy,
   Play,
   AlertTriangle,
+  RotateCcw,
+  CheckCircle,
 } from "lucide-react";
 import { FinancialEvent } from "@/components/data/events";
 
@@ -117,6 +119,8 @@ export function EventCard({ event, onEventClick }: EventCardProps) {
                   <Trophy className="h-4 w-4 text-yellow-500" />
                   <span>{event.reward} XP</span>
                 </div>
+                
+                {/* New Mission - Available but not completed */}
                 {event.unlocked && !event.completed && (
                   <Button
                     size="sm"
@@ -130,6 +134,24 @@ export function EventCard({ event, onEventClick }: EventCardProps) {
                     Start Mission
                   </Button>
                 )}
+                
+                {/* Completed Mission - Can be replayed */}
+                {event.completed && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="font-medium border-slate-400 text-slate-700 bg-slate-50 hover:bg-slate-100 hover:border-slate-500"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEventClick(event);
+                    }}
+                  >
+                    <RotateCcw className="h-4 w-4 mr-1" />
+                    Replay Mission
+                  </Button>
+                )}
+                
+                {/* Locked Mission */}
                 {!event.unlocked && (
                   <Button
                     size="sm"
