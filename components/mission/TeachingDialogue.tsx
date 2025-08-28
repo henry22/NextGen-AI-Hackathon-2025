@@ -28,6 +28,7 @@ interface TeachingDialogueProps {
     personality: string;
     color: string;
     description: string;
+    animatedAvatar: string;
   };
   selectedOption: {
     name: string;
@@ -452,7 +453,7 @@ export function TeachingDialogue({
       <div className="flex items-center gap-3 mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
         <div className="relative w-12 h-12 shrink-0">
           <Image
-            src={coach.avatar}
+            src={isTyping || !showContinue ? coach.animatedAvatar : coach.avatar}
             alt={coach.name}
             fill
             sizes="48px"
