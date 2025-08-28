@@ -81,6 +81,16 @@ const TICKER_MAP: Record<string, string> = {
 
 const TYPING_SPEED = 30; // milliseconds per character
 
+// Global cache for AI coach advice to prevent duplicate API calls across component instances
+const aiAdviceCache = new Map<
+  string,
+  { data: CoachResponse; timestamp: number }
+>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Global request lock to prevent duplicate API calls
+const activeRequests = new Set<string>();
+
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
@@ -136,6 +146,59 @@ const formatPercentage = (value: number): string => {
   return `${sign}${value.toFixed(2)}%`;
 };
 
+/**
+ * Generates a cache key for AI coach advice
+ */
+const generateCacheKey = (
+  coachName: string,
+  selectedOption: string,
+  eventTitle: string,
+  actualReturn: number,
+  finalAmount: number,
+  performance: string
+): string => {
+  return `${coachName}-${selectedOption}-${eventTitle}-${actualReturn}-${finalAmount}-${performance}`;
+};
+
+/**
+ * Checks if cached AI advice is still valid
+ */
+const getCachedAdvice = (cacheKey: string): CoachResponse | null => {
+  const cached = aiAdviceCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+  return null;
+};
+
+/**
+ * Checks if a request is already in progress for the given cache key
+ */
+const isRequestInProgress = (cacheKey: string): boolean => {
+  return activeRequests.has(cacheKey);
+};
+
+/**
+ * Marks a request as in progress
+ */
+const markRequestInProgress = (cacheKey: string): void => {
+  activeRequests.add(cacheKey);
+};
+
+/**
+ * Marks a request as completed
+ */
+const markRequestCompleted = (cacheKey: string): void => {
+  activeRequests.delete(cacheKey);
+};
+
+/**
+ * Stores AI advice in cache
+ */
+const cacheAdvice = (cacheKey: string, advice: CoachResponse): void => {
+  aiAdviceCache.set(cacheKey, { data: advice, timestamp: Date.now() });
+};
+
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
@@ -168,9 +231,37 @@ export function TeachingDialogue({
     null
   );
   const [loadingAiAdvice, setLoadingAiAdvice] = useState(false);
-
   // Use ref to track if we've already generated dialogue
   const hasGeneratedDialogue = useRef(false);
+  // Track whether dialogue was generated with AI advice
+  const [dialogueGeneratedWithAi, setDialogueGeneratedWithAi] = useState(false);
+  // Track if we've already fetched AI advice to prevent duplicate API calls
+  const hasFetchedAiAdvice = useRef(false);
+
+  // Generate cache key for this mission - use useMemo to prevent recreation
+  const cacheKey = React.useMemo(
+    () =>
+      generateCacheKey(
+        coach.name,
+        selectedOption.name,
+        event.title,
+        actualReturn,
+        finalAmount,
+        performance
+      ),
+    [
+      coach.name,
+      selectedOption.name,
+      event.title,
+      actualReturn,
+      finalAmount,
+      performance,
+    ]
+  );
+
+  // ============================================================================
+  // DIALOGUE GENERATION
+  // ============================================================================
 
   // ============================================================================
   // DATA FETCHING EFFECTS
@@ -198,11 +289,31 @@ export function TeachingDialogue({
 
   // Fetch AI coach advice
   useEffect(() => {
+    // Check cache first
+    const cachedAdvice = getCachedAdvice(cacheKey);
+    if (cachedAdvice) {
+      setAiCoachAdvice(cachedAdvice);
+      hasFetchedAiAdvice.current = true;
+      return;
+    }
+
+    // Check if request is already in progress globally
+    if (isRequestInProgress(cacheKey)) {
+      return;
+    }
+
+    // Prevent duplicate API calls within this component
+    if (hasFetchedAiAdvice.current) {
+      return;
+    }
+
     const fetchAiCoachAdvice = async () => {
+      markRequestInProgress(cacheKey); // Mark as in progress globally
       setLoadingAiAdvice(true);
+
       try {
         const coachRequest: CoachRequest = {
-          player_level: "beginner",
+          player_level: "beginner" as const,
           current_portfolio: { [selectedOption.name]: 1.0 }, // 100% in selected option
           investment_goal: getInvestmentGoal(coach.personality),
           risk_tolerance: getRiskTolerance(coach.personality),
@@ -222,135 +333,144 @@ export function TeachingDialogue({
 
         const advice = await api.getCoachAdvice(coachRequest);
         setAiCoachAdvice(advice);
+        hasFetchedAiAdvice.current = true; // Mark as fetched
+
+        // Cache the advice for future use
+        cacheAdvice(cacheKey, advice);
       } catch (error) {
         console.error("Failed to fetch AI coach advice:", error);
+        hasFetchedAiAdvice.current = true; // Mark as fetched even on error
         // Fall back to static content
       } finally {
         setLoadingAiAdvice(false);
+        markRequestCompleted(cacheKey); // Mark as completed globally
       }
     };
 
     fetchAiCoachAdvice();
-  }, [
-    selectedOption.name,
-    event.title,
-    actualReturn,
-    finalAmount,
-    performance,
-    coach.name,
-    coach.personality,
-  ]);
+  }, [cacheKey]); // Only depend on cacheKey changes
 
-  // ============================================================================
-  // DIALOGUE GENERATION
-  // ============================================================================
+  // Generate simplified teaching dialogue function
+  const generateDialogue = () => {
+    const newMessages: TeachingMessage[] = [];
+    const useAiAdvice = aiCoachAdvice && !loadingAiAdvice;
+
+    // Only generate dialogue if we have AI advice
+    if (!useAiAdvice) {
+      return;
+    }
+
+    // Greeting and result combined
+    newMessages.push({
+      id: "greeting",
+      type: "greeting",
+      content: aiCoachAdvice.advice,
+      showContinue: true,
+    });
+
+    // Key insights
+    newMessages.push({
+      id: "insights",
+      type: "metrics",
+      content: `**Key Insights:**\n${aiCoachAdvice.educational_insights
+        .map((insight) => `• ${insight}`)
+        .join("\n")}`,
+      showContinue: true,
+      showMetrics: true,
+    });
+
+    // Chart explanation
+    newMessages.push({
+      id: "chart",
+      type: "chart",
+      content: `**Chart Analysis:**\n${aiCoachAdvice.recommendations
+        .slice(0, 2)
+        .map((rec) => `• ${rec}`)
+        .join("\n")}`,
+      showContinue: true,
+      showChart: true,
+    });
+
+    // Recommendations
+    newMessages.push({
+      id: "recommendations",
+      type: "lesson",
+      content: `**My Recommendations:**\n${aiCoachAdvice.recommendations
+        .map((rec) => `• ${rec}`)
+        .join("\n")}`,
+      showContinue: true,
+    });
+
+    // Next steps
+    newMessages.push({
+      id: "next_steps",
+      type: "lesson",
+      content: `**Next Steps:**\n${aiCoachAdvice.next_steps
+        .map((step) => `• ${step}`)
+        .join("\n")}`,
+      showContinue: true,
+    });
+
+    // Completion
+    newMessages.push({
+      id: "completion",
+      type: "completion",
+      content: `🎉 ${aiCoachAdvice.encouragement} Ready for your next challenge?`,
+      showComplete: true,
+    });
+
+    setMessages(newMessages);
+    hasGeneratedDialogue.current = true; // Mark dialogue as generated
+    setDialogueGeneratedWithAi(true); // Mark that dialogue was generated with AI advice
+  };
 
   // Generate simplified teaching dialogue
   useEffect(() => {
-    if (loadingAiAdvice || hasGeneratedDialogue.current) {
-      return; // Don't generate dialogue while loading or if already generated
+    // Wait for AI advice to be fetched before generating dialogue
+    if (loadingAiAdvice) {
+      return; // Don't generate dialogue while loading
     }
 
-    const generateDialogue = () => {
-      const newMessages: TeachingMessage[] = [];
-      const useAiAdvice = aiCoachAdvice && !loadingAiAdvice;
-
-      // Greeting and result combined
-      newMessages.push({
-        id: "greeting",
-        type: "greeting",
-        content: useAiAdvice
-          ? aiCoachAdvice.advice
-          : `Hey there! Your ${
-              selectedOption.name
-            } investment resulted in a ${performance} with ${actualReturn}% return, ending with $${formatCurrency(
-              finalAmount
-            )}.`,
-        showContinue: true,
-      });
-
-      // Key insights
-      newMessages.push({
-        id: "insights",
-        type: "metrics",
-        content:
-          useAiAdvice && aiCoachAdvice.educational_insights.length > 0
-            ? `**Key Insights:**\n${aiCoachAdvice.educational_insights
-                .map((insight) => `• ${insight}`)
-                .join("\n")}`
-            : `Your investment shows how markets can be unpredictable. The key is to learn from every experience!`,
-        showContinue: true,
-        showMetrics: true,
-      });
-
-      // Chart explanation
-      newMessages.push({
-        id: "chart",
-        type: "chart",
-        content:
-          useAiAdvice && aiCoachAdvice.recommendations.length > 0
-            ? `**Chart Analysis:**\n${aiCoachAdvice.recommendations
-                .slice(0, 2)
-                .map((rec) => `• ${rec}`)
-                .join("\n")}`
-            : `This chart shows your investment journey. The trend is what matters most!`,
-        showContinue: true,
-        showChart: true,
-      });
-
-      // Recommendations
-      newMessages.push({
-        id: "recommendations",
-        type: "lesson",
-        content:
-          useAiAdvice && aiCoachAdvice.recommendations.length > 0
-            ? `**My Recommendations:**\n${aiCoachAdvice.recommendations
-                .map((rec) => `• ${rec}`)
-                .join("\n")}`
-            : `Remember: diversify your investments and think long-term!`,
-        showContinue: true,
-      });
-
-      // Next steps
-      newMessages.push({
-        id: "next_steps",
-        type: "lesson",
-        content:
-          useAiAdvice && aiCoachAdvice.next_steps.length > 0
-            ? `**Next Steps:**\n${aiCoachAdvice.next_steps
-                .map((step) => `• ${step}`)
-                .join("\n")}`
-            : `Keep learning and practicing! Every expert started where you are now.`,
-        showContinue: true,
-      });
-
-      // Completion
-      newMessages.push({
-        id: "completion",
-        type: "completion",
-        content: useAiAdvice
-          ? `🎉 ${aiCoachAdvice.encouragement} Ready for your next challenge?`
-          : `🎉 Congratulations! You've completed this investment mission. Ready for your next challenge?`,
-        showComplete: true,
-      });
-
-      setMessages(newMessages);
-      hasGeneratedDialogue.current = true; // Mark dialogue as generated
-    };
-
-    generateDialogue();
+    // Only generate dialogue if we have AI advice and haven't generated it yet
+    if (aiCoachAdvice && !hasGeneratedDialogue.current) {
+      generateDialogue();
+    } else if (
+      aiCoachAdvice &&
+      hasGeneratedDialogue.current &&
+      !dialogueGeneratedWithAi
+    ) {
+      // Regenerate dialogue with AI advice if it wasn't generated with it before
+      hasGeneratedDialogue.current = false;
+      generateDialogue();
+    } else if (
+      aiCoachAdvice &&
+      hasGeneratedDialogue.current &&
+      dialogueGeneratedWithAi
+    ) {
+      // AI advice available and dialogue already generated with AI advice
+    } else {
+      // Waiting for AI advice
+    }
   }, [
-    coach.name,
-    coach.personality,
-    selectedOption,
-    actualReturn,
-    finalAmount,
-    performance,
-    outcome,
-    event,
-    realMetrics,
+    // Only depend on loadingAiAdvice and aiCoachAdvice
     loadingAiAdvice,
+    aiCoachAdvice,
   ]);
+
+  // Track component mount
+  useEffect(() => {
+    // Clean up old cache entries
+    const now = Date.now();
+    for (const [key, value] of aiAdviceCache.entries()) {
+      if (now - value.timestamp > CACHE_DURATION) {
+        aiAdviceCache.delete(key);
+      }
+    }
+
+    return () => {
+      // Component unmounting
+    };
+  }, []);
 
   // ============================================================================
   // TYPING ANIMATION
@@ -402,9 +522,6 @@ export function TeachingDialogue({
   // RENDER HELPERS
   // ============================================================================
 
-  const currentMessage = messages[currentMessageIndex];
-  if (!currentMessage) return null;
-
   const renderMetricsCard = (
     icon: React.ReactNode,
     label: string,
@@ -447,13 +564,62 @@ export function TeachingDialogue({
   // RENDER
   // ============================================================================
 
+  // Show loading state while fetching AI advice
+  if (loadingAiAdvice && messages.length === 0) {
+    return (
+      <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+        {/* Coach Header */}
+        <div className="flex items-center gap-3 mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+          <div className="relative w-12 h-12 shrink-0">
+            <Image
+              src={coach.animatedAvatar}
+              alt={coach.name}
+              fill
+              sizes="48px"
+              className="rounded-full object-cover"
+            />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-lg">{coach.name}</h3>
+              <Badge variant="secondary" className={coach.color}>
+                {coach.personality}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">{coach.description}</p>
+          </div>
+        </div>
+
+        {/* Loading State */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 mb-6 text-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="text-gray-700">
+              <p className="font-medium text-lg">
+                Getting personalized advice from {coach.name}...
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                Analyzing your investment decision and preparing insights
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const currentMessage = messages[currentMessageIndex];
+  if (!currentMessage) return null;
+
   return (
     <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
       {/* Coach Header */}
       <div className="flex items-center gap-3 mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
         <div className="relative w-12 h-12 shrink-0">
           <Image
-            src={isTyping || !showContinue ? coach.animatedAvatar : coach.avatar}
+            src={
+              isTyping || !showContinue ? coach.animatedAvatar : coach.avatar
+            }
             alt={coach.name}
             fill
             sizes="48px"
