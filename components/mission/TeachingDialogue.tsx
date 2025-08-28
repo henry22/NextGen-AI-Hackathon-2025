@@ -132,18 +132,144 @@ const extractEventYear = (eventTitle: string): number => {
 };
 
 /**
- * Formats currency value
- */
-const formatCurrency = (value: number): string => {
-  return value.toLocaleString();
-};
-
-/**
  * Formats percentage with sign
  */
 const formatPercentage = (value: number): string => {
   const sign = value > 0 ? "+" : "";
   return `${sign}${value.toFixed(2)}%`;
+};
+
+/**
+ * Determines player level based on mission difficulty, performance, and experience
+ */
+const getPlayerLevel = (
+  eventTitle: string,
+  actualReturn: number,
+  performance: "profit" | "loss",
+  selectedOption: string
+): "beginner" | "intermediate" | "advanced" => {
+  // Mission difficulty analysis based on event title
+  const eventDifficulty = getEventDifficulty(eventTitle);
+
+  // Investment option complexity
+  const optionComplexity = getOptionComplexity(selectedOption);
+
+  // Performance analysis
+  const returnMagnitude = Math.abs(actualReturn);
+  const isProfitable = performance === "profit";
+
+  // Calculate difficulty score (0-100)
+  let difficultyScore = 0;
+
+  // Event difficulty weight: 40%
+  difficultyScore += eventDifficulty * 0.4;
+
+  // Option complexity weight: 30%
+  difficultyScore += optionComplexity * 0.3;
+
+  // Performance weight: 30%
+  if (isProfitable) {
+    difficultyScore += Math.min(returnMagnitude / 2, 30); // Cap at 30 points
+  } else {
+    difficultyScore += Math.min(returnMagnitude / 4, 15); // Losses get fewer points
+  }
+
+  // Determine level based on difficulty score
+  if (difficultyScore >= 70) {
+    return "advanced";
+  } else if (difficultyScore >= 40) {
+    return "intermediate";
+  } else {
+    return "beginner";
+  }
+};
+
+/**
+ * Analyzes event difficulty based on historical context
+ */
+const getEventDifficulty = (eventTitle: string): number => {
+  const title = eventTitle.toLowerCase();
+
+  // High difficulty events (complex market conditions)
+  if (
+    title.includes("bubble") ||
+    title.includes("crisis") ||
+    title.includes("crash")
+  ) {
+    return 90;
+  }
+
+  // Medium difficulty events (significant market movements)
+  if (
+    title.includes("recession") ||
+    title.includes("inflation") ||
+    title.includes("deflation")
+  ) {
+    return 70;
+  }
+
+  // Moderate difficulty events (market volatility)
+  if (
+    title.includes("volatility") ||
+    title.includes("uncertainty") ||
+    title.includes("change")
+  ) {
+    return 50;
+  }
+
+  // Lower difficulty events (stable conditions)
+  if (
+    title.includes("growth") ||
+    title.includes("stability") ||
+    title.includes("recovery")
+  ) {
+    return 30;
+  }
+
+  // Default difficulty
+  return 40;
+};
+
+/**
+ * Analyzes investment option complexity
+ */
+const getOptionComplexity = (selectedOption: string): number => {
+  const option = selectedOption.toLowerCase();
+
+  // High complexity options (cryptocurrency, derivatives)
+  if (
+    option.includes("bitcoin") ||
+    option.includes("ethereum") ||
+    option.includes("crypto")
+  ) {
+    return 90;
+  }
+
+  // Medium-high complexity (international markets, commodities)
+  if (
+    option.includes("japanese") ||
+    option.includes("australian") ||
+    option.includes("gold")
+  ) {
+    return 70;
+  }
+
+  // Medium complexity (bonds, real estate)
+  if (
+    option.includes("bonds") ||
+    option.includes("real estate") ||
+    option.includes("treasury")
+  ) {
+    return 50;
+  }
+
+  // Lower complexity (cash, stable assets)
+  if (option.includes("cash") || option.includes("dollar")) {
+    return 30;
+  }
+
+  // Default complexity
+  return 50;
 };
 
 /**
@@ -313,7 +439,12 @@ export function TeachingDialogue({
 
       try {
         const coachRequest: CoachRequest = {
-          player_level: "beginner" as const,
+          player_level: getPlayerLevel(
+            event.title,
+            actualReturn,
+            performance,
+            selectedOption.name
+          ),
           current_portfolio: { [selectedOption.name]: 1.0 }, // 100% in selected option
           investment_goal: getInvestmentGoal(coach.personality),
           risk_tolerance: getRiskTolerance(coach.personality),
@@ -324,9 +455,9 @@ export function TeachingDialogue({
             selectedOption.name
           } during ${
             event.title
-          }. The investment resulted in a ${performance} with ${actualReturn}% return, ending with $${formatCurrency(
+          }. The investment resulted in a ${performance} with ${actualReturn}% return, ending with $${Math.round(
             finalAmount
-          )}. The player is working with ${coach.name} (${
+          ).toLocaleString()}. The player is working with ${coach.name} (${
             coach.personality
           }) who specialises in ${coach.description}.`,
         };
@@ -663,8 +794,8 @@ export function TeachingDialogue({
                 loadingMetrics
                   ? "Loading..."
                   : realMetrics
-                  ? formatCurrency(realMetrics.final_value)
-                  : formatCurrency(finalAmount)
+                  ? Math.round(realMetrics.final_value).toLocaleString()
+                  : Math.round(finalAmount).toLocaleString()
               }`
             )}
             {renderMetricsCard(
