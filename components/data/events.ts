@@ -9,6 +9,8 @@ export interface FinancialEvent {
   reward: number;
   unlockRequirements: number[];
   unlockDescription?: string;
+  image?: string;
+  imageAlt?: string;
 }
 
 export const financialEvents: FinancialEvent[] = [
@@ -23,6 +25,8 @@ export const financialEvents: FinancialEvent[] = [
     completed: false,
     reward: 100,
     unlockRequirements: [],
+    image: "/images/japan.png",
+    imageAlt: "japan",
   },
   {
     year: 1997,
@@ -35,6 +39,8 @@ export const financialEvents: FinancialEvent[] = [
     completed: false,
     reward: 150,
     unlockRequirements: [],
+    image: "/images/asian.png",
+    imageAlt: "asian",
   },
   {
     year: 2000,
@@ -46,6 +52,8 @@ export const financialEvents: FinancialEvent[] = [
     completed: false,
     reward: 150,
     unlockRequirements: [],
+    image: "/images/bubble.png",
+    imageAlt: "bubble",
   },
   {
     year: 2008,
@@ -58,6 +66,8 @@ export const financialEvents: FinancialEvent[] = [
     completed: false,
     reward: 200,
     unlockRequirements: [1997, 2000],
+    image: "/images/global.png",
+    imageAlt: "global",
   },
   {
     year: 2020,
@@ -72,6 +82,8 @@ export const financialEvents: FinancialEvent[] = [
     unlockRequirements: [2008],
     unlockDescription:
       "Unlocked after completing '2008 - Global Financial Crisis' mission",
+    image: "/images/covid.png",
+    imageAlt: "covid",
   },
   {
     year: 2025,
@@ -85,5 +97,7 @@ export const financialEvents: FinancialEvent[] = [
     unlockRequirements: [2020],
     unlockDescription:
       "Unlocked after completing '2020 - COVID-19 Pandemic Impact' mission",
+    image: "/images/inflation.png",
+    imageAlt: "inflation",
   },
 ];
