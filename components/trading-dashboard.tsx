@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -55,16 +55,17 @@ interface TradingDashboardProps {
   initialPortfolio: Record<string, number>;
   selectedCoach: AICoach;
   onEndCompetition: (data: any) => void;
+  startingCapital?: number;
 }
 
 // Mock market data for simulation
 const marketData = {
-  apple: { price: 185.5, change: 2.3 },
-  microsoft: { price: 378.85, change: 1.8 },
-  nvidia: { price: 875.3, change: 4.2 },
-  tesla: { price: 248.5, change: -1.5 },
-  sp500: { price: 445.2, change: 1.2 },
-  etf: { price: 78.9, change: 0.8 },
+  apple: { price: 230.45, change: 2.3 },
+  microsoft: { price: 506.46, change: 1.8 },
+  nvidia: { price: 178.10, change: 4.2 },
+  tesla: { price: 346.76, change: -1.5 },
+  sp500: { price: 646.33, change: 1.2 },
+  etf: { price: 134.18, change: 0.8 },
   bitcoin: { price: 43250.0, change: 3.7 },
   ethereum: { price: 2680.5, change: 2.1 },
 };
@@ -84,10 +85,11 @@ export default function TradingDashboard({
   initialPortfolio,
   selectedCoach,
   onEndCompetition,
+  startingCapital = 5000,
 }: TradingDashboardProps) {
   const [portfolio, setPortfolio] = useState<Portfolio>({});
   const [cash, setCash] = useState(0);
-  const [totalValue, setTotalValue] = useState(1000);
+  const [totalValue, setTotalValue] = useState(startingCapital);
   const [dailyReturn, setDailyReturn] = useState(0);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -109,7 +111,7 @@ export default function TradingDashboard({
   const [performanceData, setPerformanceData] = useState<PerfPoint[]>([
     {
       time: 0,
-      total: 1000,
+      total: startingCapital,
       ...Object.fromEntries(
         Object.keys(marketData).map((k) => [
           k,
@@ -119,10 +121,30 @@ export default function TradingDashboard({
     },
   ]);
 
+  const hourRef = useRef(0); // 当前小时（0~24）
+  const runningRef = useRef(true); // 是否在运行
+  const cashRef = useRef(cash); // 用于 interval 内读取最新 cash
+  const portfolioRef = useRef(portfolio); // 用于 interval 内读取最新 portfolio
+
+  useEffect(() => {
+    cashRef.current = cash;
+  }, [cash]);
+  useEffect(() => {
+    portfolioRef.current = portfolio;
+  }, [portfolio]);
+
   // mock performance data
   useEffect(() => {
     const interval = setInterval(() => {
-      // 1) 先基于当前 prices 计算下一时刻价格，保存到一个本地变量 nextPrices
+      // 先做停止判断（确保价格与图表都不再推进）
+      const nextHour = hourRef.current + 1;
+      if (nextHour > 24 || !runningRef.current) {
+        runningRef.current = false;
+        clearInterval(interval);
+        return;
+      }
+
+      // 1) 先生成下一刻价格
       let nextPrices: Record<string, number> = {};
       setPrices((prev) => {
         const next: Record<string, number> = { ...prev };
@@ -130,37 +152,26 @@ export default function TradingDashboard({
           const rf = 1 + (Math.random() * 0.1 - 0.05); // ±5%
           next[asset] = Math.max(0, next[asset] * rf);
         });
-        nextPrices = next; // 把结果“带出来”
+        nextPrices = next;
         return next;
       });
 
-      // 2) 用 nextPrices 推进图表（总资产 + 各资产价格）
-      setPerformanceData((prevData) => {
-        const last = prevData[prevData.length - 1];
-        const nextHour = last.time + 1;
-        if (nextHour > 24) {
-          clearInterval(interval);
-          return prevData;
-        }
-
-        let portfolioValue = 0;
-        Object.entries(portfolio).forEach(([asset, holding]) => {
-          const p =
-            nextPrices[asset] ??
-            marketData[asset as keyof typeof marketData].price;
-          portfolioValue += holding.shares * p;
-        });
-        const newTotal = portfolioValue + cash;
-
-        const nextPoint: PerfPoint = {
-          time: nextHour,
-          total: newTotal,
-          ...nextPrices,
-        };
-        return [...prevData, nextPoint];
+      // 2) 计算新总资产并推进图表
+      let portfolioValue = 0;
+      Object.entries(portfolioRef.current).forEach(([asset, holding]) => {
+        const p =
+          nextPrices[asset] ??
+          marketData[asset as keyof typeof marketData].price;
+        portfolioValue += holding.shares * p;
       });
+      const newTotal = portfolioValue + cashRef.current;
 
-      // 3) 同步持仓的 currentPrice
+      setPerformanceData((prev) => [
+        ...prev,
+        { time: nextHour, total: newTotal, ...nextPrices },
+      ]);
+
+      // 3) 同步持仓价格
       setPortfolio((prev) => {
         const updated: Portfolio = { ...prev };
         Object.keys(updated).forEach((asset) => {
@@ -171,12 +182,13 @@ export default function TradingDashboard({
         });
         return updated;
       });
-    }, 5000); // 5s = 1小时
+
+      // 4) 最后再推进小时计数
+      hourRef.current = nextHour;
+    }, 3000); // 3s = 1小时（你注释写 5s，可按需统一）
 
     return () => clearInterval(interval);
-    // 不把 prices/performanceData 放依赖里，避免重建 interval
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cash, portfolio]);
+  }, []);
 
   const hourlyTicks = useMemo(() => {
     if (performanceData.length === 0) return [0];
@@ -191,7 +203,8 @@ export default function TradingDashboard({
   // Initialize portfolio from allocations
   useEffect(() => {
     const initialCash =
-      1000 - Object.values(initialPortfolio).reduce((sum, val) => sum + val, 0);
+      startingCapital -
+      Object.values(initialPortfolio).reduce((sum, val) => sum + val, 0);
     setCash(initialCash);
 
     const newPortfolio: Portfolio = {};
@@ -227,7 +240,7 @@ export default function TradingDashboard({
     }, 0);
     const newTotalValue = portfolioValue + cash;
     setTotalValue(newTotalValue);
-    setDailyReturn(((newTotalValue - 1000) / 1000) * 100);
+    setDailyReturn(((newTotalValue - startingCapital) / startingCapital) * 100);
   }, [portfolio, cash]);
 
   const handleBuy = (asset: string, amount: number) => {
@@ -448,10 +461,12 @@ export default function TradingDashboard({
                       <p className="text-sm text-muted-foreground">P&L</p>
                       <p
                         className={`text-xl font-bold ${
-                          totalValue >= 1000 ? "text-chart-1" : "text-chart-2"
+                          totalValue >= startingCapital
+                            ? "text-chart-1"
+                            : "text-chart-2"
                         }`}
                       >
-                        ${(totalValue - 1000).toFixed(2)}
+                        ${(totalValue - startingCapital).toFixed(2)}
                       </p>
                     </div>
                   </div>

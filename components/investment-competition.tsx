@@ -1,13 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
-import TradingDashboard from "@/components/trading-dashboard";
 import {
   ArrowLeft,
   DollarSign,
@@ -25,17 +24,21 @@ import {
   Bitcoin,
 } from "lucide-react";
 
-interface InvestmentOption {
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
+
+interface InvestmentOptionMeta {
   id: string;
   name: string;
   type: "stock" | "fund" | "crypto";
   icon: any;
-  currentPrice: number;
-  change: number;
   risk: "low" | "medium" | "high";
   description: string;
 }
 
+interface Quote {
+  currentPrice: number;
+  change: number; // %
+}
 interface AICoach {
   id: string;
   name: string;
@@ -47,14 +50,12 @@ interface AICoach {
   gif?: string;
 }
 
-const investmentOptions: InvestmentOption[] = [
+const investmentOptions: InvestmentOptionMeta[] = [
   {
     id: "apple",
     name: "Apple Inc.",
     type: "stock",
     icon: Apple,
-    currentPrice: 185.5,
-    change: 2.3,
     risk: "medium",
     description: "Global tech giant, iPhone manufacturer",
   },
@@ -63,8 +64,6 @@ const investmentOptions: InvestmentOption[] = [
     name: "Microsoft Corp.",
     type: "stock",
     icon: Building,
-    currentPrice: 378.85,
-    change: 1.8,
     risk: "medium",
     description: "Cloud services and software leader",
   },
@@ -73,8 +72,6 @@ const investmentOptions: InvestmentOption[] = [
     name: "NVIDIA Corp.",
     type: "stock",
     icon: Cpu,
-    currentPrice: 875.3,
-    change: 4.2,
     risk: "high",
     description: "AI chips and graphics processor leader",
   },
@@ -83,8 +80,6 @@ const investmentOptions: InvestmentOption[] = [
     name: "Tesla Inc.",
     type: "stock",
     icon: Car,
-    currentPrice: 248.5,
-    change: -1.5,
     risk: "high",
     description: "Electric vehicle and clean energy innovator",
   },
@@ -93,8 +88,6 @@ const investmentOptions: InvestmentOption[] = [
     name: "S&P 500 ETF",
     type: "fund",
     icon: TrendingUp,
-    currentPrice: 445.2,
-    change: 1.2,
     risk: "low",
     description: "Tracks US top 500 companies index",
   },
@@ -103,8 +96,6 @@ const investmentOptions: InvestmentOption[] = [
     name: "Global ETF",
     type: "fund",
     icon: Building,
-    currentPrice: 78.9,
-    change: 0.8,
     risk: "low",
     description: "Global diversified investment portfolio",
   },
@@ -113,8 +104,6 @@ const investmentOptions: InvestmentOption[] = [
     name: "Bitcoin",
     type: "crypto",
     icon: Bitcoin,
-    currentPrice: 43250.0,
-    change: 3.7,
     risk: "high",
     description: "Digital gold, cryptocurrency king",
   },
@@ -123,8 +112,6 @@ const investmentOptions: InvestmentOption[] = [
     name: "Ethereum",
     type: "crypto",
     icon: Coins,
-    currentPrice: 2680.5,
-    change: 2.1,
     risk: "high",
     description: "Smart contract platform leader",
   },
@@ -175,7 +162,7 @@ const aiCoaches: AICoach[] = [
 
 interface InvestmentCompetitionProps {
   onBack: () => void;
-  onStartTrading: (portfolio: any, coach: any) => void;
+  onStartTrading: (portfolio: Record<string, number>, coach: AICoach) => void;
 }
 
 export default function InvestmentCompetition({
@@ -186,7 +173,52 @@ export default function InvestmentCompetition({
   const [selectedCoach, setSelectedCoach] = useState<AICoach | null>(null);
   const [totalAllocated, setTotalAllocated] = useState(0);
 
-  const startingCapital = 1000;
+  const startingCapital = 5000;
+
+  // —— 新增：行情状态 —— //
+  const [quotes, setQuotes] = useState<Record<string, Quote>>({});
+  const [loadingQuotes, setLoadingQuotes] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+
+  // 拉取后端 /quotes
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    const fetchQuotes = async () => {
+      try {
+        setLoadingQuotes(true);
+        setQuoteError(null);
+
+        // 构建重复参数：?ids=a&ids=b...
+        const ids = investmentOptions.map((o) => o.id);
+        const params = new URLSearchParams();
+        ids.forEach((id) => params.append("ids", id));
+        const url = `${API_BASE}/quotes?${params.toString()}`;
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        const map: Record<string, Quote> = {};
+        (data?.quotes ?? []).forEach((q: any) => {
+          map[q.id] = { currentPrice: q.currentPrice, change: q.change };
+        });
+        setQuotes(map);
+      } catch (e: any) {
+        setQuoteError(e?.message ?? "Failed to fetch quotes");
+      } finally {
+        setLoadingQuotes(false);
+      }
+    };
+
+    fetchQuotes();
+    // 轮询刷新（可按需调整 30s）
+    timer = setInterval(fetchQuotes, 30000);
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, []);
 
   const updateAllocation = (optionId: string, amount: number) => {
     // 限制 amount 不超过剩余可用资金 + 原来这个 option 的值
@@ -250,26 +282,36 @@ export default function InvestmentCompetition({
             onClick={onBack}
             className="flex items-center gap-2 bg-transparent"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Timeline
+            <ArrowLeft className="h-4 w-4" /> Back to Timeline
           </Button>
           <div className="text-center">
             <h1 className="text-3xl font-serif font-bold text-foreground">
               Investment Competition
             </h1>
             <p className="text-muted-foreground">
-              Use your $1,000 starting capital to begin your investment journey
+              Use your $5,000 starting capital to begin your investment journey
             </p>
           </div>
-          <div className="w-24" /> {/* Spacer */}
+          <div className="w-24" />
         </div>
+
+        {/* Quotes loading/error */}
+        {loadingQuotes && (
+          <p className="text-sm text-muted-foreground mb-4">
+            Loading latest prices…
+          </p>
+        )}
+        {quoteError && (
+          <p className="text-sm text-red-600 mb-4">
+            Failed to load quotes: {quoteError}
+          </p>
+        )}
 
         {/* Capital Overview */}
         <Card className="mb-8 border-primary/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-primary">
-              <DollarSign className="h-6 w-6" />
-              Capital Overview
+              <DollarSign className="h-6 w-6" /> Capital Overview
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -312,14 +354,17 @@ export default function InvestmentCompetition({
             {/* Stocks */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                Stocks
+                <TrendingUp className="h-5 w-5 text-primary" /> Stocks
               </h3>
               <div className="grid md:grid-cols-2 gap-4">
                 {investmentOptions
-                  .filter((option) => option.type === "stock")
+                  .filter((o) => o.type === "stock")
                   .map((option) => {
                     const Icon = option.icon;
+                    const q = quotes[option.id];
+                    const price = q?.currentPrice;
+                    const change = q?.change ?? 0;
+
                     return (
                       <Card
                         key={option.id}
@@ -350,22 +395,20 @@ export default function InvestmentCompetition({
                         <CardContent>
                           <div className="flex items-center justify-between mb-3">
                             <span className="font-semibold">
-                              ${option.currentPrice}
+                              {price != null ? `$${price.toFixed(2)}` : "--"}
                             </span>
                             <span
                               className={`flex items-center gap-1 ${
-                                option.change >= 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
+                                change >= 0 ? "text-green-600" : "text-red-600"
                               }`}
                             >
-                              {option.change >= 0 ? (
+                              {change >= 0 ? (
                                 <TrendingUp className="h-4 w-4" />
                               ) : (
                                 <TrendingDown className="h-4 w-4" />
                               )}
-                              {option.change >= 0 ? "+" : ""}
-                              {option.change}%
+                              {change >= 0 ? "+" : ""}
+                              {change.toFixed(2)}%
                             </span>
                           </div>
                           <div className="space-y-2">
@@ -393,14 +436,17 @@ export default function InvestmentCompetition({
             {/* Funds */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                Funds
+                <Shield className="h-5 w-5 text-primary" /> Funds
               </h3>
               <div className="grid md:grid-cols-2 gap-4">
                 {investmentOptions
-                  .filter((option) => option.type === "fund")
+                  .filter((o) => o.type === "fund")
                   .map((option) => {
                     const Icon = option.icon;
+                    const q = quotes[option.id];
+                    const price = q?.currentPrice;
+                    const change = q?.change ?? 0;
+
                     return (
                       <Card
                         key={option.id}
@@ -431,22 +477,20 @@ export default function InvestmentCompetition({
                         <CardContent>
                           <div className="flex items-center justify-between mb-3">
                             <span className="font-semibold">
-                              ${option.currentPrice}
+                              {price != null ? `$${price.toFixed(2)}` : "--"}
                             </span>
                             <span
                               className={`flex items-center gap-1 ${
-                                option.change >= 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
+                                change >= 0 ? "text-green-600" : "text-red-600"
                               }`}
                             >
-                              {option.change >= 0 ? (
+                              {change >= 0 ? (
                                 <TrendingUp className="h-4 w-4" />
                               ) : (
                                 <TrendingDown className="h-4 w-4" />
                               )}
-                              {option.change >= 0 ? "+" : ""}
-                              {option.change}%
+                              {change >= 0 ? "+" : ""}
+                              {change.toFixed(2)}%
                             </span>
                           </div>
                           <div className="space-y-2">
@@ -476,14 +520,17 @@ export default function InvestmentCompetition({
             {/* Crypto */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" />
-                Cryptocurrency
+                <Zap className="h-5 w-5 text-primary" /> Cryptocurrency
               </h3>
               <div className="grid md:grid-cols-2 gap-4">
                 {investmentOptions
-                  .filter((option) => option.type === "crypto")
+                  .filter((o) => o.type === "crypto")
                   .map((option) => {
                     const Icon = option.icon;
+                    const q = quotes[option.id];
+                    const price = q?.currentPrice;
+                    const change = q?.change ?? 0;
+
                     return (
                       <Card
                         key={option.id}
@@ -514,22 +561,24 @@ export default function InvestmentCompetition({
                         <CardContent>
                           <div className="flex items-center justify-between mb-3">
                             <span className="font-semibold">
-                              ${option.currentPrice.toLocaleString()}
+                              {price != null
+                                ? `$${price.toLocaleString(undefined, {
+                                    maximumFractionDigits: 2,
+                                  })}`
+                                : "--"}
                             </span>
                             <span
                               className={`flex items-center gap-1 ${
-                                option.change >= 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
+                                change >= 0 ? "text-green-600" : "text-red-600"
                               }`}
                             >
-                              {option.change >= 0 ? (
+                              {change >= 0 ? (
                                 <TrendingUp className="h-4 w-4" />
                               ) : (
                                 <TrendingDown className="h-4 w-4" />
                               )}
-                              {option.change >= 0 ? "+" : ""}
-                              {option.change}%
+                              {change >= 0 ? "+" : ""}
+                              {change.toFixed(2)}%
                             </span>
                           </div>
                           <div className="space-y-2">
@@ -556,7 +605,6 @@ export default function InvestmentCompetition({
               </div>
             </div>
           </div>
-
           {/* AI Coach Selection */}
           <div>
             <h2 className="text-2xl font-serif font-bold mb-6">
