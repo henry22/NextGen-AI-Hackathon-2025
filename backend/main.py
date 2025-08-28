@@ -12,7 +12,7 @@ from models import (
     LeaderboardSubmit, LeaderboardResponse
 )
 from database import get_db, init_db
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
@@ -25,6 +25,7 @@ import yfinance as yf
 import json
 import os
 from dotenv import load_dotenv
+from typing import List
 
 # Load environment variables from .env file
 load_dotenv()
@@ -46,6 +47,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# id 到 yfinance ticker 映射
+ID_TO_SYMBOL = {
+    "apple": "AAPL",
+    "microsoft": "MSFT",
+    "nvidia": "NVDA",
+    "tesla": "TSLA",
+    "sp500": "SPY",   # S&P500 ETF
+    "etf": "VT",      # Vanguard Total World ETF
+    # 加密货币 Yahoo Finance 支持现货 ETF，例如 BTC-USD, ETH-USD
+    "bitcoin": "BTC-USD",
+    "ethereum": "ETH-USD",
+}
+
 
 # Initialize database
 
@@ -324,6 +339,51 @@ async def get_asset_comparison(
         start_date=start_date,
         end_date=end_date
     )
+
+
+@app.get("/quotes")
+def get_quotes(request: Request, ids: List[str] = Query(None)):
+    if not ids:
+        raw = request.query_params.get("ids", "")
+        ids = [x for x in raw.split(",") if x] if raw else []
+
+    syms = {i: ID_TO_SYMBOL.get(i) for i in ids if ID_TO_SYMBOL.get(i)}
+    if not syms:
+        return {"quotes": []}
+
+    # 一次性下载最近两天收盘价
+    df = yf.download(
+        tickers=list(syms.values()),
+        period="2d",
+        interval="1d",
+        group_by="ticker",
+        auto_adjust=False,
+        progress=False,
+        threads=True,
+    )
+
+    results = []
+    for _id, sym in syms.items():
+        try:
+            # 兼容 yfinance 返回的两种结构（多/单票）
+            if isinstance(df.columns, pd.MultiIndex):
+                close = df[sym]["Close"]
+            else:
+                close = df["Close"]
+            latest = float(close.iloc[-1])
+            prev = float(close.iloc[-2]) if len(close) > 1 else latest
+            change = ((latest - prev) / prev * 100) if prev else 0.0
+            results.append({
+                "id": _id,
+                "currentPrice": round(latest, 2),
+                "change": round(change, 2),
+            })
+        except Exception:
+            # 某只票失败就跳过，不要让整个接口报错
+            continue
+
+    return {"quotes": results}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
