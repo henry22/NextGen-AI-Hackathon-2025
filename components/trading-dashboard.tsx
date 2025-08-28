@@ -41,6 +41,7 @@ interface AICoach {
   name: string;
   avatar: string;
   style: string;
+  gif?: string;
 }
 
 interface ChatMessage {
@@ -92,40 +93,90 @@ export default function TradingDashboard({
   const [newMessage, setNewMessage] = useState("");
   const [day, setDay] = useState(1);
 
-  // Mock portfolio performance data
-  const [performanceData, setPerformanceData] = useState([
-    { time: 0, value: 1000, return: 0 }, // time=0 表示 00:00
+  // 资产当前价格
+  const [prices, setPrices] = useState<Record<string, number>>(
+    Object.fromEntries(
+      Object.keys(marketData).map((k) => [
+        k,
+        marketData[k as keyof typeof marketData].price,
+      ])
+    )
+  );
+
+  // 图表点：time（小时），total（总资产），以及每个资产的价格
+  type PerfPoint = { time: number; total: number } & Record<string, number>;
+
+  const [performanceData, setPerformanceData] = useState<PerfPoint[]>([
+    {
+      time: 0,
+      total: 1000,
+      ...Object.fromEntries(
+        Object.keys(marketData).map((k) => [
+          k,
+          marketData[k as keyof typeof marketData].price,
+        ])
+      ),
+    },
   ]);
 
   // mock performance data
   useEffect(() => {
     const interval = setInterval(() => {
-      setPerformanceData((prev) => {
-        const last = prev[prev.length - 1];
-        const nextHour = last.time + 1;
+      // 1) 先基于当前 prices 计算下一时刻价格，保存到一个本地变量 nextPrices
+      let nextPrices: Record<string, number> = {};
+      setPrices((prev) => {
+        const next: Record<string, number> = { ...prev };
+        Object.keys(prev).forEach((asset) => {
+          const rf = 1 + (Math.random() * 0.1 - 0.05); // ±5%
+          next[asset] = Math.max(0, next[asset] * rf);
+        });
+        nextPrices = next; // 把结果“带出来”
+        return next;
+      });
 
-        // stop at 24:00
+      // 2) 用 nextPrices 推进图表（总资产 + 各资产价格）
+      setPerformanceData((prevData) => {
+        const last = prevData[prevData.length - 1];
+        const nextHour = last.time + 1;
         if (nextHour > 24) {
           clearInterval(interval);
-          return prev;
+          return prevData;
         }
 
-        const randomFactor = 1 + (Math.random() * 0.1 - 0.05); // ±5%
-        const nextValue = last.value * randomFactor;
+        let portfolioValue = 0;
+        Object.entries(portfolio).forEach(([asset, holding]) => {
+          const p =
+            nextPrices[asset] ??
+            marketData[asset as keyof typeof marketData].price;
+          portfolioValue += holding.shares * p;
+        });
+        const newTotal = portfolioValue + cash;
 
-        return [
-          ...prev,
-          {
-            time: nextHour,
-            value: Math.max(0, Math.min(1200, nextValue)), // 限制在 0~1200
-            return: ((nextValue - 1000) / 1000) * 100,
-          },
-        ];
+        const nextPoint: PerfPoint = {
+          time: nextHour,
+          total: newTotal,
+          ...nextPrices,
+        };
+        return [...prevData, nextPoint];
       });
-    }, 5000);
+
+      // 3) 同步持仓的 currentPrice
+      setPortfolio((prev) => {
+        const updated: Portfolio = { ...prev };
+        Object.keys(updated).forEach((asset) => {
+          if (updated[asset]) {
+            updated[asset].currentPrice =
+              nextPrices[asset] ?? updated[asset].currentPrice;
+          }
+        });
+        return updated;
+      });
+    }, 5000); // 5s = 1小时
 
     return () => clearInterval(interval);
-  }, []);
+    // 不把 prices/performanceData 放依赖里，避免重建 interval
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cash, portfolio]);
 
   const hourlyTicks = useMemo(() => {
     if (performanceData.length === 0) return [0];
@@ -427,21 +478,26 @@ export default function TradingDashboard({
                     <XAxis
                       dataKey="time"
                       type="number"
-                      domain={[0, "dataMax"]}
+                      domain={[0, 24]}
                       ticks={hourlyTicks}
-                      tickFormatter={(h) => `${String(h).padStart(2, "0")}:00`} // 00:00, 01:00...
+                      tickFormatter={(h) => `${String(h).padStart(2, "0")}:00`}
                       stroke="var(--muted-foreground)"
                     />
+
                     {/* 固定纵轴 */}
                     <YAxis
-                      domain={[0, 1200]}
+                      domain={["auto", "auto"]}
                       stroke="var(--muted-foreground)"
                     />
+
                     <Tooltip
                       labelFormatter={(h) => `${String(h).padStart(2, "0")}:00`}
                       formatter={(val, name) => {
                         const num = Number(val);
-                        return [`$${num.toFixed(2)}`, "Value"];
+                        return [
+                          `$${num.toFixed(2)}`,
+                          name === "total" ? "Total" : name,
+                        ];
                       }}
                       contentStyle={{
                         backgroundColor: "var(--card)",
@@ -452,12 +508,32 @@ export default function TradingDashboard({
 
                     <Line
                       type="monotone"
-                      dataKey="value"
+                      dataKey="total"
                       stroke="var(--primary)"
                       strokeWidth={2}
-                      dot={{ fill: "var(--primary)" }}
+                      dot={false}
                       isAnimationActive={false}
+                      name="total"
                     />
+
+                    {Object.entries(portfolio).map(([asset, holding], idx) =>
+                      holding.shares > 0 ? (
+                        <Line
+                          key={asset}
+                          type="monotone"
+                          dataKey={asset} // 我们在 perf 点里把每个资产价格写成了 { apple: 123, ... }
+                          stroke={`var(--chart-${(idx % 5) + 1})`} // 颜色可按需定义/替换
+                          strokeWidth={1.75}
+                          dot={false}
+                          isAnimationActive={false}
+                          name={
+                            investmentNames[
+                              asset as keyof typeof investmentNames
+                            ] || asset
+                          }
+                        />
+                      ) : null
+                    )}
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
