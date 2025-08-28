@@ -5,6 +5,7 @@ import { api, handleApiError, withLoading } from "@/lib/api";
 import InvestmentCompetition from "@/components/investment-competition";
 import TradingDashboard from "@/components/trading-dashboard";
 import CompetitionResults from "@/components/competition-results";
+import { Play } from "lucide-react";
 
 // Import new components
 import { GameHeader } from "@/components/game/GameHeader";
@@ -21,6 +22,7 @@ import { aiCoaches, AICoach } from "@/components/data/coaches";
 import { missionData, MissionData } from "@/components/data/missions";
 
 export default function FinancialTimelineGame() {
+  const [showStartScreen, setShowStartScreen] = useState(true);
   const [currentPage, setCurrentPage] = useState<
     "timeline" | "competition" | "trading" | "results"
   >("timeline");
@@ -76,9 +78,184 @@ export default function FinancialTimelineGame() {
     });
   };
 
+  const allMissionsCompleted = financialEvents.every(
+    (event) => event.completed
+  );
+
+  // All useEffect hooks must be at the top level, before any conditional returns
   useEffect(() => {
     updateUnlockStatus();
   }, []);
+
+  useEffect(() => {
+    if (allMissionsCompleted && !showSummary && !summaryDismissed) {
+      summaryTimerRef.current = window.setTimeout(() => {
+        setShowSummary(true);
+      }, 1000);
+    }
+
+    return () => {
+      if (summaryTimerRef.current) {
+        clearTimeout(summaryTimerRef.current);
+        summaryTimerRef.current = null;
+      }
+    };
+  }, [allMissionsCompleted, showSummary, summaryDismissed]);
+
+  // Render start screen if not started
+  if (showStartScreen) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            {/* Game Logo and Title */}
+            <div className="space-y-4">
+              <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/10 mb-6">
+                <div className="h-12 w-12 text-primary text-4xl">⏰</div>
+              </div>
+              <h1 className="text-6xl font-serif font-black text-primary mb-2">
+                Legacy Guardians
+              </h1>
+              <p className="text-2xl font-medium text-muted-foreground">
+                Time-Warp Wealth Adventure
+              </p>
+            </div>
+
+            {/* Game Description */}
+            <div className="max-w-2xl mx-auto bg-card rounded-lg shadow-lg p-8">
+              <div className="space-y-6">
+                <h2 className="text-2xl font-serif font-semibold text-foreground">
+                  Master Wealth Wisdom Through Time Travel
+                </h2>
+                <p className="text-lg leading-relaxed text-muted-foreground">
+                  Welcome to the financial history time adventure! You'll travel
+                  to key moments of major financial events, learn investment
+                  strategies with AI coaches, and experience real financial
+                  decisions in a risk-free environment.
+                </p>
+
+                <div className="grid md:grid-cols-3 gap-4 mt-8">
+                  <div className="text-center p-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-3">
+                      <div className="h-6 w-6 text-green-600 text-xl">📈</div>
+                    </div>
+                    <h3 className="font-semibold mb-2">Learn Investing</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Master risk management and asset allocation
+                    </p>
+                  </div>
+
+                  <div className="text-center p-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-3">
+                      <div className="h-6 w-6 text-blue-600 text-xl">📚</div>
+                    </div>
+                    <h3 className="font-semibold mb-2">Historical Insights</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Understand the causes and effects of financial crises
+                    </p>
+                  </div>
+
+                  <div className="text-center p-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 mb-3">
+                      <div className="h-6 w-6 text-purple-600 text-xl">🤖</div>
+                    </div>
+                    <h3 className="font-semibold mb-2">AI Coaches</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Professional coaches provide personalized guidance
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Game Features */}
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              <div className="text-left bg-card rounded-lg shadow-lg p-6 h-full min-w-0">
+                <h3 className="font-serif font-semibold mb-3 flex items-center gap-2">
+                  <div className="h-5 w-5 text-primary text-lg">🎯</div>
+                  Game Features
+                </h3>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2 min-h-[1.5rem]">
+                    <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
+                    <span className="leading-relaxed">
+                      Experience major financial events from 1990-2025
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2 min-h-[1.5rem]">
+                    <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
+                    <span className="leading-relaxed">
+                      Risk-free learning environment to safely explore
+                      investment strategies
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2 min-h-[1.5rem]">
+                    <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
+                    <span className="leading-relaxed">
+                      Personalized AI coach guidance and feedback
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2 min-h-[1.5rem]">
+                    <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
+                    <span className="leading-relaxed">
+                      Progressive unlock system and achievement tracking
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="text-left bg-card rounded-lg shadow-lg p-6 h-full min-w-0">
+                <h3 className="font-serif font-semibold mb-3 flex items-center gap-2">
+                  <div className="h-5 w-5 text-primary text-lg">🏆</div>
+                  Learning Objectives
+                </h3>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2 min-h-[1.5rem]">
+                    <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
+                    <span className="leading-relaxed">
+                      Understand the relationship between risk and reward
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2 min-h-[1.5rem]">
+                    <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
+                    <span className="leading-relaxed">
+                      Learn diversified investment strategies
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2 min-h-[1.5rem]">
+                    <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
+                    <span className="leading-relaxed">
+                      Master market cycles and timing judgment
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2 min-h-[1.5rem]">
+                    <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
+                    <span className="leading-relaxed">
+                      Develop long-term investment thinking
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Start Game Button */}
+            <div className="pt-8">
+              <button
+                onClick={() => setShowStartScreen(false)}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-12 py-6 font-semibold rounded-lg transition-colors"
+              >
+                <Play className="inline-block h-6 w-6 mr-3" />
+                Start Time Adventure
+              </button>
+              <p className="text-sm text-muted-foreground mt-4">
+                Ready to travel through time and become a wealth guardian?
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleEventClick = async (event: FinancialEvent) => {
     if (event.unlocked) {
@@ -222,25 +399,6 @@ export default function FinancialTimelineGame() {
       setMissionResult(null);
     }
   };
-
-  const allMissionsCompleted = financialEvents.every(
-    (event) => event.completed
-  );
-
-  useEffect(() => {
-    if (allMissionsCompleted && !showSummary && !summaryDismissed) {
-      summaryTimerRef.current = window.setTimeout(() => {
-        setShowSummary(true);
-      }, 1000);
-    }
-
-    return () => {
-      if (summaryTimerRef.current) {
-        clearTimeout(summaryTimerRef.current);
-        summaryTimerRef.current = null;
-      }
-    };
-  }, [allMissionsCompleted, showSummary, summaryDismissed]);
 
   const startCompetition = () => {
     setCurrentPage("competition");
