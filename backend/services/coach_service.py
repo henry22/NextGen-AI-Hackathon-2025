@@ -98,9 +98,9 @@ class CoachService:
         """Create system prompt based on player level and coach personality"""
 
         base_prompt = """
-        You are an AI financial coach for Australian teenagers aged 12-18. 
+        You are an AI financial coach for Australian teenagers aged 12-18.
         Your role is to provide educational, encouraging, and age-appropriate financial advice.
-        
+
         Key principles:
         - Use simple, clear language
         - Be encouraging and supportive
@@ -108,7 +108,7 @@ class CoachService:
         - Emphasize diversification and risk management
         - Avoid encouraging day trading or speculation
         - Make learning fun and engaging
-        
+
         Always structure your response with:
         1. Main advice (2-3 sentences)
         2. Key recommendations (3-4 bullet points)
@@ -118,60 +118,76 @@ class CoachService:
         6. Encouragement (motivational closing)
         """
 
-        # Add coach personality-specific guidance
+        # Enhanced coach personality-specific guidance with unique language styles
         if coach_personality:
             if "Conservative" in coach_personality:
                 base_prompt += """
-                
-                Coach Style: Conservative Coach
+
+                🛡️ Coach Style: Conservative Coach (Steady Sam)
+                Your personality: Calm, patient, and protective. You speak like a wise mentor who prioritizes safety.
                 Your approach emphasizes:
-                - Safety and stability first
-                - Bonds, gold, and defensive stocks
-                - Capital preservation
-                - Steady, reliable returns
-                - Risk-averse strategies
+                - Safety and stability first - "Better safe than sorry"
+                - Bonds, gold, and defensive stocks for steady growth
+                - Capital preservation over aggressive gains
+                - Steady, reliable returns that compound over time
+                - Risk-averse strategies that protect wealth
                 - Long-term wealth building through safe investments
+
+                Language style: Use phrases like "steady as she goes," "safety first," "protect your capital," "slow and steady wins the race"
+                Tone: Calm, reassuring, protective, like a caring grandparent
                 """
             elif "Balanced" in coach_personality:
                 base_prompt += """
-                
-                Coach Style: Balanced Coach
+
+                ⚖️ Coach Style: Balanced Coach (Wise Wendy)
+                Your personality: Thoughtful, analytical, and balanced. You speak like a knowledgeable teacher who finds the middle ground.
                 Your approach emphasizes:
-                - Mix of growth and stability
-                - Diversified asset allocation
-                - Moderate risk-taking
-                - Stocks, ETFs, and REITs
+                - Mix of growth and stability for optimal balance
+                - Diversified asset allocation across different sectors
+                - Moderate risk-taking with calculated decisions
+                - Stocks, ETFs, and REITs for growth potential
                 - Balanced risk-reward trade-offs
-                - Steady portfolio growth
+                - Steady portfolio growth with controlled volatility
+
+                Language style: Use phrases like "balance is key," "diversification is your friend," "moderation in all things," "calculated risks"
+                Tone: Wise, balanced, educational, like a trusted teacher
                 """
             elif "Aggressive" in coach_personality:
                 base_prompt += """
-                
-                Coach Style: Aggressive Coach
+
+                🚀 Coach Style: Aggressive Coach (Adventure Alex)
+                Your personality: Energetic, bold, and optimistic. You speak like an enthusiastic mentor who embraces challenges.
                 Your approach emphasizes:
-                - High-growth opportunities
-                - Crypto and growth stocks
-                - Higher risk for higher returns
+                - High-growth opportunities for maximum returns
+                - Crypto and growth stocks for explosive growth
+                - Higher risk for higher potential rewards
                 - Innovation and emerging markets
-                - Capital appreciation focus
-                - Embracing volatility for growth
+                - Capital appreciation focus over stability
+                - Embracing volatility as an opportunity for growth
+
+                Language style: Use phrases like "go big or go home," "embrace the challenge," "high risk, high reward," "innovation pays off"
+                Tone: Energetic, bold, optimistic, like an inspiring coach
                 """
             elif "Income" in coach_personality:
                 base_prompt += """
-                
-                Coach Style: Income Coach
+
+                💰 Coach Style: Income Coach (Income Izzy)
+                Your personality: Practical, strategic, and focused on results. You speak like a business mentor who values consistent returns.
                 Your approach emphasizes:
-                - Passive income generation
-                - Dividend-paying investments
-                - Compound interest effects
-                - Regular cash flow
-                - Income-focused strategies
-                - Building wealth through consistent returns
+                - Passive income generation for financial freedom
+                - Dividend-paying investments for regular cash flow
+                - Compound interest effects for exponential growth
+                - Regular cash flow strategies
+                - Income-focused strategies over capital gains
+                - Building wealth through consistent, reliable returns
+
+                Language style: Use phrases like "cash flow is king," "compound interest is magic," "steady income beats sporadic gains," "money working for you"
+                Tone: Practical, strategic, results-focused, like a successful business person
                 """
 
         if player_level == "beginner":
             return base_prompt + """
-            
+
             Focus on:
             - Basic concepts like diversification
             - The power of compound interest
@@ -182,7 +198,7 @@ class CoachService:
 
         elif player_level == "intermediate":
             return base_prompt + """
-            
+
             Focus on:
             - Risk vs reward trade-offs
             - Portfolio rebalancing
@@ -193,7 +209,7 @@ class CoachService:
 
         else:  # advanced
             return base_prompt + """
-            
+
             Focus on:
             - Advanced portfolio optimization
             - Risk management strategies
@@ -205,37 +221,99 @@ class CoachService:
     def _create_user_prompt(self, request: CoachRequest) -> str:
         """Create user prompt with player context"""
 
+        # Extract investment result information from player context
+        investment_result = "neutral"
+        investment_return = 0
+        investment_performance = "neutral"
+
+        if request.player_context:
+            if "resulted in a profit" in request.player_context:
+                investment_result = "profit"
+                investment_performance = "positive"
+            elif "resulted in a loss" in request.player_context:
+                investment_result = "loss"
+                investment_performance = "negative"
+
+            # Extract return percentage
+            import re
+            return_match = re.search(
+                r'(\d+(?:\.\d+)?)% return', request.player_context)
+            if return_match:
+                investment_return = float(return_match.group(1))
+
         prompt = f"""
-        Player Context:
+        🎯 Player Context:
         - Level: {request.player_level}
         - Risk Tolerance: {request.risk_tolerance}/1.0
         - Time Horizon: {request.time_horizon} days
         - Investment Goal: {request.investment_goal}
         - Completed Missions: {', '.join(request.completed_missions)}
         - Current Mission: {request.current_mission or 'None'}
-        
-        Current Portfolio:
+
+        📊 Current Portfolio:
         """
 
         for asset, weight in request.current_portfolio.items():
             prompt += f"- {asset}: {weight:.1%}\n"
 
         if request.recent_performance:
-            prompt += f"\nRecent Performance: {request.recent_performance}\n"
+            prompt += f"\n📈 Recent Performance: {request.recent_performance}\n"
 
         if request.player_context:
-            prompt += f"\nAdditional Context: {request.player_context}\n"
+            prompt += f"\n🎭 Additional Context: {request.player_context}\n"
 
-        prompt += """
-        
-        Please provide personalized advice that:
-        1. Addresses their current portfolio and goals
-        2. Is appropriate for their experience level
-        3. Helps them learn and improve
-        4. Keeps them motivated and engaged
-        5. Teaches important financial concepts
-        
-        Remember: This is for educational purposes only, and they're learning in a risk-free environment.
+        # Add investment result-specific guidance
+        if investment_result == "profit":
+            prompt += f"""
+
+            🎉 Investment Result: PROFIT ({investment_return}% return)
+            Focus on:
+            - Celebrating their success while keeping them humble
+            - Teaching them not to get overconfident
+            - Building on their success with strategic next steps
+            - Reinforcing good investment principles
+            - Encouraging them to diversify their success
+            """
+        elif investment_result == "loss":
+            prompt += f"""
+
+            📉 Investment Result: LOSS ({investment_return}% return)
+            Focus on:
+            - Being encouraging and supportive despite the loss
+            - Teaching them that losses are learning opportunities
+            - Helping them understand what went wrong
+            - Building resilience and long-term thinking
+            - Turning setbacks into stepping stones for growth
+            """
+        else:
+            prompt += f"""
+
+            ➡️ Investment Result: NEUTRAL ({investment_return}% return)
+            Focus on:
+            - Helping them understand market stability
+            - Teaching them about different investment outcomes
+            - Building confidence in their decision-making
+            - Exploring new opportunities for growth
+            - Maintaining their investment momentum
+            """
+
+        prompt += f"""
+
+        🎨 Personalization Requirements:
+        1. Address their current portfolio and goals with your unique coaching style
+        2. Make advice appropriate for their experience level and risk tolerance
+        3. Help them learn and improve from this specific investment experience
+        4. Keep them motivated and engaged with your personality
+        5. Teach important financial concepts in your unique way
+        6. Use your specific language style and tone consistently
+        7. Provide advice that aligns with your coaching philosophy
+        8. Make the response feel like it's coming from your specific character
+
+        💡 Remember:
+        - This is for educational purposes only
+        - They're learning in a risk-free environment
+        - Your personality should shine through in every word
+        - Make the advice feel personal and authentic to your coaching style
         """
 
         return prompt
@@ -308,18 +386,98 @@ class CoachService:
                 encouragement = section.replace(
                     "6. **Encouragement:**", "").strip()
 
-        # Fallback if parsing didn't work well
+        # Enhanced fallback with personality-based content
         if not advice:
-            advice = advice_text[:200] + \
-                "..." if len(advice_text) > 200 else advice_text
+            # Extract coach personality for personalized fallback
+            coach_personality = None
+            if request.player_context:
+                if "Conservative Coach" in request.player_context:
+                    coach_personality = "Conservative"
+                elif "Balanced Coach" in request.player_context:
+                    coach_personality = "Balanced"
+                elif "Aggressive Coach" in request.player_context:
+                    coach_personality = "Aggressive"
+                elif "Income Coach" in request.player_context:
+                    coach_personality = "Income"
+
+            # Create personalized fallback advice
+            if coach_personality == "Conservative":
+                advice = "Steady as she goes! Your investment journey is about building lasting wealth through careful, calculated decisions."
+            elif coach_personality == "Balanced":
+                advice = "Balance is key in investing. You're learning to find the sweet spot between growth and stability."
+            elif coach_personality == "Aggressive":
+                advice = "Embrace the challenge! Every investment is a learning opportunity to grow your wealth and knowledge."
+            elif coach_personality == "Income":
+                advice = "Cash flow is king! Focus on building investments that work for you consistently."
+            else:
+                advice = advice_text[:200] + \
+                    "..." if len(advice_text) > 200 else advice_text
 
         if not recommendations:
-            recommendations = ["Focus on diversification",
-                               "Learn about different asset classes"]
+            # Personality-based fallback recommendations
+            if coach_personality == "Conservative":
+                recommendations = [
+                    "Focus on capital preservation and steady growth",
+                    "Learn about bonds and defensive stocks",
+                    "Practice patience in volatile markets",
+                    "Build a foundation of safe investments"
+                ]
+            elif coach_personality == "Balanced":
+                recommendations = [
+                    "Maintain diversified asset allocation",
+                    "Learn about risk-reward trade-offs",
+                    "Practice regular portfolio rebalancing",
+                    "Explore both growth and income strategies"
+                ]
+            elif coach_personality == "Aggressive":
+                recommendations = [
+                    "Embrace high-growth opportunities",
+                    "Learn about emerging markets and innovation",
+                    "Practice risk management in volatile assets",
+                    "Focus on capital appreciation strategies"
+                ]
+            elif coach_personality == "Income":
+                recommendations = [
+                    "Focus on dividend-paying investments",
+                    "Learn about compound interest effects",
+                    "Practice building passive income streams",
+                    "Prioritize consistent cash flow generation"
+                ]
+            else:
+                recommendations = [
+                    "Focus on diversification",
+                    "Learn about different asset classes",
+                    "Practice risk management",
+                    "Build long-term investment habits"
+                ]
 
         if not next_steps:
-            next_steps = ["Continue learning about investing",
-                          "Practice with different portfolios"]
+            # Personality-based fallback next steps
+            if coach_personality == "Conservative":
+                next_steps = [
+                    "Continue building your safe investment foundation",
+                    "Practice with low-risk asset combinations"
+                ]
+            elif coach_personality == "Balanced":
+                next_steps = [
+                    "Try different portfolio balance strategies",
+                    "Practice with moderate risk combinations"
+                ]
+            elif coach_personality == "Aggressive":
+                next_steps = [
+                    "Explore high-growth investment opportunities",
+                    "Practice with higher-risk strategies"
+                ]
+            elif coach_personality == "Income":
+                next_steps = [
+                    "Focus on income-generating investments",
+                    "Practice building cash flow strategies"
+                ]
+            else:
+                next_steps = [
+                    "Continue learning about investing",
+                    "Practice with different portfolios"
+                ]
 
         print(
             f"📋 Parsed: Advice={len(advice)} chars, Recs={len(recommendations)}, Steps={len(next_steps)}")
