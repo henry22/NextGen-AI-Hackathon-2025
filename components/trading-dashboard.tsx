@@ -11,8 +11,6 @@ import {
   TrendingDown,
   ShoppingCart,
   Minus,
-  Send,
-  MessageCircle,
   BarChart3,
   Activity,
   Target,
@@ -104,7 +102,14 @@ export default function TradingDashboard({
     const interval = setInterval(() => {
       setPerformanceData((prev) => {
         const last = prev[prev.length - 1];
-        const nextHour = last.time + 1; // 每次增加 1 小时
+        const nextHour = last.time + 1;
+
+        // stop at 24:00
+        if (nextHour > 24) {
+          clearInterval(interval);
+          return prev;
+        }
+
         const randomFactor = 1 + (Math.random() * 0.1 - 0.05); // ±5%
         const nextValue = last.value * randomFactor;
 
@@ -117,7 +122,7 @@ export default function TradingDashboard({
           },
         ];
       });
-    }, 10000); // 每 5 秒钟模拟 1 小时
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);
@@ -427,19 +432,24 @@ export default function TradingDashboard({
                       tickFormatter={(h) => `${String(h).padStart(2, "0")}:00`} // 00:00, 01:00...
                       stroke="var(--muted-foreground)"
                     />
-                    {/* 固定纵轴 0~1400 */}
+                    {/* 固定纵轴 */}
                     <YAxis
-                      domain={[0, 1400]}
+                      domain={[0, 1200]}
                       stroke="var(--muted-foreground)"
                     />
                     <Tooltip
-                      labelFormatter={(t) => new Date(t).toLocaleTimeString()}
+                      labelFormatter={(h) => `${String(h).padStart(2, "0")}:00`}
+                      formatter={(val, name) => {
+                        const num = Number(val);
+                        return [`$${num.toFixed(2)}`, "Value"];
+                      }}
                       contentStyle={{
                         backgroundColor: "var(--card)",
                         border: "1px solid var(--border)",
                         borderRadius: "8px",
                       }}
                     />
+
                     <Line
                       type="monotone"
                       dataKey="value"
