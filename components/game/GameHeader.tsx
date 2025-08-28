@@ -1,4 +1,5 @@
 import React from "react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface GameHeaderProps {
   playerLevel: number;
@@ -7,6 +8,9 @@ interface GameHeaderProps {
 }
 
 export function GameHeader({ playerLevel, playerXP, totalScore }: GameHeaderProps) {
+  const xpToNextLevel = 1000;
+  const xpProgress = ((playerXP % xpToNextLevel) / xpToNextLevel) * 100;
+  
   return (
     <header className="border-b bg-card shadow-sm">
       <div className="container mx-auto px-4 py-4">
@@ -19,14 +23,29 @@ export function GameHeader({ playerLevel, playerXP, totalScore }: GameHeaderProp
               Time-Warp Wealth Adventure
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-medium">Level {playerLevel}</p>
-              <p className="text-xs text-muted-foreground">{playerXP} XP</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-medium">Total Score</p>
-              <p className="text-lg font-bold text-primary">{totalScore}</p>
+          <div className="flex items-center gap-6">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-center px-4 py-3 bg-muted rounded-lg min-w-[80px] cursor-help">
+                    <p className="text-xs text-muted-foreground">Level</p>
+                    <p className="text-xl font-bold text-primary">{playerLevel}</p>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Experience: {playerXP}/{xpToNextLevel} XP</p>
+                  <div className="w-32 bg-gray-200 rounded-full h-2 mt-1">
+                    <div 
+                      className="bg-primary h-2 rounded-full transition-all" 
+                      style={{ width: `${xpProgress}%` }}
+                    />
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <div className="text-center px-4 py-3 bg-muted rounded-lg min-w-[100px]">
+              <p className="text-xs text-muted-foreground">Total Score</p>
+              <p className="text-xl font-bold text-primary">{totalScore}</p>
             </div>
           </div>
         </div>
