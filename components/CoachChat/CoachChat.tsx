@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { MessageCircle, Send } from "lucide-react";
 
 interface ChatMessage {
@@ -37,6 +37,12 @@ export default function CoachChat({
   setNewMessage,
   sendMessage,
 }: CoachChatProps) {
+  const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [chatMessages]);
+
   return (
     <Card className="bg-sidebar border-sidebar-border h-[800px] flex flex-col">
       <CardHeader className="bg-sidebar-primary text-sidebar-primary-foreground flex flex-col items-center">
@@ -58,8 +64,8 @@ export default function CoachChat({
         </p>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col p-0">
-        <ScrollArea className="flex-1 p-4">
+      <CardContent className="flex-1 flex min-h-0 flex-col p-0">
+        <ScrollArea className="flex-1 min-h-0 p-4">
           <div className="space-y-4">
             {chatMessages.map((msg) => (
               <div
@@ -82,7 +88,10 @@ export default function CoachChat({
                 </div>
               </div>
             ))}
+            <div ref={endRef} />
           </div>
+
+          <ScrollBar orientation="vertical" />
         </ScrollArea>
 
         {/* Input area */}
@@ -92,7 +101,7 @@ export default function CoachChat({
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Ask your AI coach..."
-              onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               className="bg-input border-border"
             />
             <Button
