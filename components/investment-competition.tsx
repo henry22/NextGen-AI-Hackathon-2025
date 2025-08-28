@@ -44,6 +44,7 @@ interface AICoach {
   description: string;
   specialty: string;
   successRate: number;
+  gif?: string;
 }
 
 const investmentOptions: InvestmentOption[] = [
@@ -138,6 +139,7 @@ const aiCoaches: AICoach[] = [
     description: "Focuses on risk control and stable returns",
     specialty: "Defensive investment strategies",
     successRate: 78,
+    gif: "/gifs/conservative.gif",
   },
   {
     id: "balanced",
@@ -147,6 +149,7 @@ const aiCoaches: AICoach[] = [
     description: "Finds the best balance between risk and return",
     specialty: "Diversified asset allocation",
     successRate: 82,
+    gif: "/gifs/balanced.gif",
   },
   {
     id: "aggressive",
@@ -156,6 +159,7 @@ const aiCoaches: AICoach[] = [
     description: "Pursues high returns, willing to take risks",
     specialty: "Growth stocks and emerging markets",
     successRate: 85,
+    gif: "/gifs/aggressive.gif",
   },
   {
     id: "tech",
@@ -165,6 +169,7 @@ const aiCoaches: AICoach[] = [
     description: "Specialises in tech stocks and innovative investments",
     specialty: "AI and tech trend analysis",
     successRate: 88,
+    gif: "/gifs/master.gif",
   },
 ];
 
