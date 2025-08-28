@@ -60,12 +60,12 @@ interface TradingDashboardProps {
 
 // Mock market data for simulation
 const marketData = {
-  apple: { price: 185.5, change: 2.3 },
-  microsoft: { price: 378.85, change: 1.8 },
-  nvidia: { price: 875.3, change: 4.2 },
-  tesla: { price: 248.5, change: -1.5 },
-  sp500: { price: 445.2, change: 1.2 },
-  etf: { price: 78.9, change: 0.8 },
+  apple: { price: 230.45, change: 2.3 },
+  microsoft: { price: 506.46, change: 1.8 },
+  nvidia: { price: 178.10, change: 4.2 },
+  tesla: { price: 346.76, change: -1.5 },
+  sp500: { price: 646.33, change: 1.2 },
+  etf: { price: 134.18, change: 0.8 },
   bitcoin: { price: 43250.0, change: 3.7 },
   ethereum: { price: 2680.5, change: 2.1 },
 };
