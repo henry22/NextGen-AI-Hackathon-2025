@@ -175,12 +175,12 @@ export default function InvestmentCompetition({
 
   const startingCapital = 5000;
 
-  // —— 新增：行情状态 —— //
+  // Market quote status
   const [quotes, setQuotes] = useState<Record<string, Quote>>({});
   const [loadingQuotes, setLoadingQuotes] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
 
-  // 拉取后端 /quotes
+  // Fetch backend /quotes
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | null = null;
 
@@ -189,7 +189,7 @@ export default function InvestmentCompetition({
         setLoadingQuotes(true);
         setQuoteError(null);
 
-        // 构建重复参数：?ids=a&ids=b...
+        // Build repeated parameters: ?ids=a&ids=b...
         const ids = investmentOptions.map((o) => o.id);
         const params = new URLSearchParams();
         ids.forEach((id) => params.append("ids", id));
@@ -212,7 +212,7 @@ export default function InvestmentCompetition({
     };
 
     fetchQuotes();
-    // 轮询刷新（可按需调整 30s）
+    // Polling refresh (adjustable, currently 30s)
     timer = setInterval(fetchQuotes, 30000);
 
     return () => {
@@ -221,7 +221,7 @@ export default function InvestmentCompetition({
   }, []);
 
   const updateAllocation = (optionId: string, amount: number) => {
-    // 限制 amount 不超过剩余可用资金 + 原来这个 option 的值
+    // Limit amount to not exceed remaining available funds + original option value
     const maxAllowed =
       startingCapital - totalAllocated + (allocations[optionId] || 0);
     const safeAmount = Math.min(amount, maxAllowed);

@@ -19,7 +19,7 @@ const openSans = Open_Sans({
 
 export const metadata: Metadata = {
   title: "Legacy Guardians - Time-Warp Wealth",
-  description: "穿越歷史的投資任務 - 學習金融投資的遊戲化教育平台",
+  description: "Travel through historical investment missions - A gamified educational platform for learning financial investment",
   generator: "v0.app",
 };
 
@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="zh-TW"
+      lang="en"
       className={`${montserrat.variable} ${openSans.variable} antialiased`}
     >
       <body className="font-sans" suppressHydrationWarning={true}>

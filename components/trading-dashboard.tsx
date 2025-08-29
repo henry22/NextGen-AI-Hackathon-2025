@@ -95,7 +95,7 @@ export default function TradingDashboard({
   const [newMessage, setNewMessage] = useState("");
   const [day, setDay] = useState(1);
 
-  // 资产当前价格
+  // Current asset prices
   const [prices, setPrices] = useState<Record<string, number>>(
     Object.fromEntries(
       Object.keys(marketData).map((k) => [
@@ -105,7 +105,7 @@ export default function TradingDashboard({
     )
   );
 
-  // 图表点：time（小时），total（总资产），以及每个资产的价格
+  // Chart points: time (hour), total (total assets), and each asset's price
   type PerfPoint = { time: number; total: number } & Record<string, number>;
 
   const [performanceData, setPerformanceData] = useState<PerfPoint[]>([
@@ -121,10 +121,10 @@ export default function TradingDashboard({
     },
   ]);
 
-  const hourRef = useRef(0); // 当前小时（0~24）
-  const runningRef = useRef(true); // 是否在运行
-  const cashRef = useRef(cash); // 用于 interval 内读取最新 cash
-  const portfolioRef = useRef(portfolio); // 用于 interval 内读取最新 portfolio
+  const hourRef = useRef(0); // Current hour (0~24)
+  const runningRef = useRef(true); // Whether running
+  const cashRef = useRef(cash); // For reading latest cash in interval
+  const portfolioRef = useRef(portfolio); // For reading latest portfolio in interval
 
   useEffect(() => {
     cashRef.current = cash;
@@ -136,7 +136,7 @@ export default function TradingDashboard({
   // mock performance data
   useEffect(() => {
     const interval = setInterval(() => {
-      // 先做停止判断（确保价格与图表都不再推进）
+      // Check stop condition first (ensure prices and charts don't advance further)
       const nextHour = hourRef.current + 1;
       if (nextHour > 24 || !runningRef.current) {
         runningRef.current = false;
@@ -144,7 +144,7 @@ export default function TradingDashboard({
         return;
       }
 
-      // 1) 先生成下一刻价格
+      // 1) Generate next moment's prices first
       let nextPrices: Record<string, number> = {};
       setPrices((prev) => {
         const next: Record<string, number> = { ...prev };
@@ -156,7 +156,7 @@ export default function TradingDashboard({
         return next;
       });
 
-      // 2) 计算新总资产并推进图表
+      // 2) Calculate new total assets and advance chart
       let portfolioValue = 0;
       Object.entries(portfolioRef.current).forEach(([asset, holding]) => {
         const p =
@@ -171,7 +171,7 @@ export default function TradingDashboard({
         { time: nextHour, total: newTotal, ...nextPrices },
       ]);
 
-      // 3) 同步持仓价格
+      // 3) Sync position prices
       setPortfolio((prev) => {
         const updated: Portfolio = { ...prev };
         Object.keys(updated).forEach((asset) => {
@@ -183,9 +183,9 @@ export default function TradingDashboard({
         return updated;
       });
 
-      // 4) 最后再推进小时计数
+      // 4) Finally advance hour counter
       hourRef.current = nextHour;
-    }, 3000); // 3s = 1小时（你注释写 5s，可按需统一）
+    }, 3000); // 3s = 1 hour (can be adjusted as needed)
 
     return () => clearInterval(interval);
   }, []);
@@ -489,7 +489,7 @@ export default function TradingDashboard({
                       strokeDasharray="3 3"
                       stroke="var(--border)"
                     />
-                    {/* 用时间戳做横轴 */}
+                    {/* Use timestamp for x-axis */}
                     <XAxis
                       dataKey="time"
                       type="number"
@@ -499,7 +499,7 @@ export default function TradingDashboard({
                       stroke="var(--muted-foreground)"
                     />
 
-                    {/* 固定纵轴 */}
+                    {/* Fixed y-axis */}
                     <YAxis
                       domain={["auto", "auto"]}
                       stroke="var(--muted-foreground)"
@@ -536,8 +536,8 @@ export default function TradingDashboard({
                         <Line
                           key={asset}
                           type="monotone"
-                          dataKey={asset} // 我们在 perf 点里把每个资产价格写成了 { apple: 123, ... }
-                          stroke={`var(--chart-${(idx % 5) + 1})`} // 颜色可按需定义/替换
+                          dataKey={asset} // We wrote each asset price as { apple: 123, ... } in perf points
+                          stroke={`var(--chart-${(idx % 5) + 1})`} // Colors can be defined/replaced as needed
                           strokeWidth={1.75}
                           dot={false}
                           isAnimationActive={false}

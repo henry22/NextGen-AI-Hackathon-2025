@@ -109,7 +109,7 @@ async def general_exception_handler(request: Request, exc: Exception):
         }
     )
 
-# id 到 yfinance ticker 映射
+# ID to yfinance ticker mapping
 ID_TO_SYMBOL = {
     "apple": "AAPL",
     "microsoft": "MSFT",
@@ -117,7 +117,7 @@ ID_TO_SYMBOL = {
     "tesla": "TSLA",
     "sp500": "SPY",   # S&P500 ETF
     "etf": "VT",      # Vanguard Total World ETF
-    # 加密货币 Yahoo Finance 支持现货 ETF，例如 BTC-USD, ETH-USD
+    # Crypto supported by Yahoo Finance spot ETFs, e.g., BTC-USD, ETH-USD
     "bitcoin": "BTC-USD",
     "ethereum": "ETH-USD",
 }
@@ -421,7 +421,7 @@ def get_quotes(request: Request, ids: List[str] = Query(None)):
 
     print(f"🔍 Fetching quotes for symbols: {list(syms.values())}")
 
-    # 使用更长的期间来确保有足够的数据
+    # Use longer period to ensure sufficient data
     try:
         df = yf.download(
             tickers=list(syms.values()),
@@ -448,7 +448,7 @@ def get_quotes(request: Request, ids: List[str] = Query(None)):
         try:
             print(f"🔍 Processing {_id} -> {sym}")
 
-            # 兼容 yfinance 返回的两种结构（多/单票）
+            # Compatible with both yfinance return structures (multi/single ticker)
             if isinstance(df.columns, pd.MultiIndex):
                 if sym in df.columns.levels[0]:
                     close = df[sym]["Close"]
@@ -464,7 +464,7 @@ def get_quotes(request: Request, ids: List[str] = Query(None)):
                 print(f"⚠️ No data for {sym}")
                 continue
 
-            # 找到最后一个有效的价格（非nan）
+            # Find the last valid price (non-nan)
             valid_prices = close.dropna()
             if valid_prices.empty:
                 print(f"⚠️ No valid prices for {sym}")
@@ -472,7 +472,7 @@ def get_quotes(request: Request, ids: List[str] = Query(None)):
 
             latest = safe_float(valid_prices.iloc[-1])
 
-            # 找到倒数第二个有效价格用于计算变化
+            # Find the second-to-last valid price for change calculation
             if len(valid_prices) > 1:
                 prev = safe_float(valid_prices.iloc[-2])
             else:
@@ -500,7 +500,7 @@ def get_quotes(request: Request, ids: List[str] = Query(None)):
 
     print(f"📊 Final results: {results}")
 
-    # 如果没有获取到任何数据，使用后备数据
+    # Use fallback data if no data is retrieved
     if not results:
         print("🔄 No results obtained, using fallback")
         return {"quotes": _get_fallback_quotes(syms)}
@@ -512,7 +512,7 @@ def _get_fallback_quotes(syms: Dict[str, str]) -> List[Dict[str, Any]]:
     """Return fallback quotes when yfinance fails"""
     print("🔄 Using fallback quotes")
 
-    # 模拟价格数据
+    # Mock price data
     fallback_prices = {
         "AAPL": 175.50,
         "MSFT": 380.25,
@@ -528,7 +528,7 @@ def _get_fallback_quotes(syms: Dict[str, str]) -> List[Dict[str, Any]]:
     for _id, sym in syms.items():
         if sym in fallback_prices:
             price = fallback_prices[sym]
-            # 模拟小的价格变化
+            # Simulate small price changes
             change = round((np.random.random() - 0.5) * 2, 2)  # -1% to +1%
 
             results.append({
