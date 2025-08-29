@@ -130,6 +130,19 @@ ID_TO_SYMBOL = {
 async def startup_event():
     init_db()
 
+# Root path
+
+
+@app.get("/")
+async def root():
+    return {
+        "message": "NextGen AI Hackathon API",
+        "version": "1.0.0",
+        "status": "running",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
 # Health check
 
 
