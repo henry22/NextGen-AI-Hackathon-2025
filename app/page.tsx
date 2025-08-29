@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Play } from "lucide-react";
 
 export default function HomePage() {
@@ -11,7 +12,13 @@ export default function HomePage() {
           {/* Game Logo and Title */}
           <div className="space-y-4">
             <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/10 mb-6">
-              <div className="h-12 w-12 text-primary text-4xl">⏰</div>
+              <Image
+                src="/nuvc-logo.png"
+                alt="NUVC Logo"
+                width={48}
+                height={48}
+                className="object-contain"
+              />
             </div>
             <h1 className="text-6xl font-serif font-black text-primary mb-2">
               Legacy Guardians
