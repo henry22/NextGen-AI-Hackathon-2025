@@ -26,11 +26,41 @@ import json
 import os
 from dotenv import load_dotenv
 from typing import List
+import openai
+import os
+from typing import Dict, List, Any
+from models import CoachRequest, CoachResponse
+
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Import our modules
+
+
+def safe_float(value):
+    """Convert value to safe float for JSON serialization"""
+    if pd.isna(value) or np.isnan(value) or np.isinf(value):
+        return 0.0
+    return float(value)
+
+
+def safe_json_serializer(obj):
+    """Custom JSON serializer to handle NaN and infinite values"""
+    if pd.isna(obj) or np.isnan(obj) or np.isinf(obj):
+        return 0.0
+    if isinstance(obj, (np.integer, np.int64)):
+        return int(obj)
+    if isinstance(obj, (np.floating, np.float64)):
+        return safe_float(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, pd.Series):
+        return obj.tolist()
+    if isinstance(obj, pd.DataFrame):
+        return obj.to_dict('records')
+    return obj
+
 
 app = FastAPI(
     title="Legacy Guardians API",
@@ -47,6 +77,37 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(ValueError)
+async def value_error_handler(request: Request, exc: ValueError):
+    """Handle ValueError (including NaN serialization errors)"""
+    if "Out of range float values are not JSON compliant" in str(exc):
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Data serialization error",
+                "message": "Invalid numeric values detected in response data",
+                "details": "Please try again or contact support if the issue persists"
+            }
+        )
+    return JSONResponse(
+        status_code=400,
+        content={"error": "Bad Request", "message": str(exc)}
+    )
+
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    """Handle general exceptions"""
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal Server Error",
+            "message": "An unexpected error occurred",
+            "details": str(exc) if os.getenv("DEBUG") == "true" else "Please try again later"
+        }
+    )
 
 # id 到 yfinance ticker 映射
 ID_TO_SYMBOL = {
@@ -169,14 +230,17 @@ async def get_prices(
         # Ensure prices don't go negative
         prices = np.maximum(prices, base_price * 0.1)
 
+        # Ensure all prices are safe for JSON
+        prices = [safe_float(price) for price in prices]
+
         ticker_data = []
         for i, date in enumerate(dates):
             ticker_data.append({
                 "date": date.strftime("%Y-%m-%d"),
-                "open": prices[i] * 0.99,
-                "high": prices[i] * 1.01,
-                "low": prices[i] * 0.98,
-                "close": prices[i],
+                "open": safe_float(prices[i] * 0.99),
+                "high": safe_float(prices[i] * 1.01),
+                "low": safe_float(prices[i] * 0.98),
+                "close": safe_float(prices[i]),
                 "volume": int(np.random.uniform(1000000, 5000000))
             })
 
@@ -210,6 +274,9 @@ async def simulate_investment(request: SimulationRequest):
     # Add some randomness
     total_return += np.random.normal(0, 0.02)
 
+    # Ensure total_return is safe for calculations
+    total_return = safe_float(total_return)
+
     final_value = initial_capital * (1 + total_return)
 
     # Generate performance chart data (yearly from 1990 to current)
@@ -230,16 +297,17 @@ async def simulate_investment(request: SimulationRequest):
 
         performance_chart.append({
             "date": f"{year}-01-01",
-            "value": max(value, initial_capital * 0.1)  # Ensure minimum value
+            # Ensure minimum value and safe float
+            "value": safe_float(max(value, initial_capital * 0.1))
         })
 
     return {
-        "final_value": final_value,
-        "total_return": total_return,
-        "annualized_return": total_return,
-        "volatility": 0.15 + np.random.normal(0, 0.05),
-        "sharpe_ratio": max(0.1, total_return / 0.15),
-        "max_drawdown": -0.1 - abs(np.random.normal(0, 0.05)),
+        "final_value": safe_float(final_value),
+        "total_return": safe_float(total_return),
+        "annualized_return": safe_float(total_return),
+        "volatility": safe_float(0.15 + np.random.normal(0, 0.05)),
+        "sharpe_ratio": safe_float(max(0.1, total_return / 0.15)),
+        "max_drawdown": safe_float(-0.1 - abs(np.random.normal(0, 0.05))),
         "performance_chart": performance_chart
     }
 
@@ -351,38 +419,127 @@ def get_quotes(request: Request, ids: List[str] = Query(None)):
     if not syms:
         return {"quotes": []}
 
-    # 一次性下载最近两天收盘价
-    df = yf.download(
-        tickers=list(syms.values()),
-        period="2d",
-        interval="1d",
-        group_by="ticker",
-        auto_adjust=False,
-        progress=False,
-        threads=True,
-    )
+    print(f"🔍 Fetching quotes for symbols: {list(syms.values())}")
+
+    # 使用更长的期间来确保有足够的数据
+    try:
+        df = yf.download(
+            tickers=list(syms.values()),
+            period="5d",
+            interval="1d",
+            group_by="ticker",
+            auto_adjust=False,
+            progress=False,
+            threads=True,
+        )
+        print(f"📊 Downloaded data shape: {df.shape}")
+        print(f"📊 Data columns: {df.columns}")
+
+        if df.empty:
+            print("⚠️ No data downloaded, using fallback")
+            return {"quotes": _get_fallback_quotes(syms)}
+
+    except Exception as e:
+        print(f"❌ Error downloading data: {e}")
+        return {"quotes": _get_fallback_quotes(syms)}
 
     results = []
     for _id, sym in syms.items():
         try:
+            print(f"🔍 Processing {_id} -> {sym}")
+
             # 兼容 yfinance 返回的两种结构（多/单票）
             if isinstance(df.columns, pd.MultiIndex):
-                close = df[sym]["Close"]
+                if sym in df.columns.levels[0]:
+                    close = df[sym]["Close"]
+                    print(f"📈 MultiIndex data for {sym}: {close.values}")
+                else:
+                    print(f"⚠️ Symbol {sym} not found in MultiIndex columns")
+                    continue
             else:
                 close = df["Close"]
-            latest = float(close.iloc[-1])
-            prev = float(close.iloc[-2]) if len(close) > 1 else latest
-            change = ((latest - prev) / prev * 100) if prev else 0.0
+                print(f"📈 Single ticker data: {close.values}")
+
+            if close.empty:
+                print(f"⚠️ No data for {sym}")
+                continue
+
+            # 找到最后一个有效的价格（非nan）
+            valid_prices = close.dropna()
+            if valid_prices.empty:
+                print(f"⚠️ No valid prices for {sym}")
+                continue
+
+            latest = safe_float(valid_prices.iloc[-1])
+
+            # 找到倒数第二个有效价格用于计算变化
+            if len(valid_prices) > 1:
+                prev = safe_float(valid_prices.iloc[-2])
+            else:
+                prev = latest
+
+            print(f"💰 {sym}: latest={latest}, prev={prev}")
+
+            if latest <= 0:
+                print(f"⚠️ Invalid price for {sym}: {latest}")
+                continue
+
+            change = safe_float(((latest - prev) / prev * 100)
+                                if prev and prev > 0 else 0.0)
+
             results.append({
                 "id": _id,
                 "currentPrice": round(latest, 2),
                 "change": round(change, 2),
             })
-        except Exception:
-            # 某只票失败就跳过，不要让整个接口报错
+            print(f"✅ Added quote for {_id}: price={latest}, change={change}%")
+
+        except Exception as e:
+            print(f"❌ Error processing {_id} ({sym}): {e}")
             continue
 
+    print(f"📊 Final results: {results}")
+
+    # 如果没有获取到任何数据，使用后备数据
+    if not results:
+        print("🔄 No results obtained, using fallback")
+        return {"quotes": _get_fallback_quotes(syms)}
+
     return {"quotes": results}
+
+
+def _get_fallback_quotes(syms: Dict[str, str]) -> List[Dict[str, Any]]:
+    """Return fallback quotes when yfinance fails"""
+    print("🔄 Using fallback quotes")
+
+    # 模拟价格数据
+    fallback_prices = {
+        "AAPL": 175.50,
+        "MSFT": 380.25,
+        "NVDA": 850.75,
+        "TSLA": 245.80,
+        "SPY": 450.30,
+        "VT": 95.45,
+        "BTC-USD": 112495.65,
+        "ETH-USD": 4502.13,
+    }
+
+    results = []
+    for _id, sym in syms.items():
+        if sym in fallback_prices:
+            price = fallback_prices[sym]
+            # 模拟小的价格变化
+            change = round((np.random.random() - 0.5) * 2, 2)  # -1% to +1%
+
+            results.append({
+                "id": _id,
+                "currentPrice": price,
+                "change": change,
+            })
+            print(
+                f"🔄 Fallback quote for {_id}: price={price}, change={change}%")
+
+    return results
 
 
 if __name__ == "__main__":

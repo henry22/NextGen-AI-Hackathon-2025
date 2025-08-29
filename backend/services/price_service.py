@@ -5,11 +5,18 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+import numpy as np
 
 
 class PriceService:
     def __init__(self):
         self.executor = ThreadPoolExecutor(max_workers=4)
+
+    def _safe_float(self, value):
+        """Convert value to safe float for JSON serialization"""
+        if pd.isna(value) or np.isnan(value) or np.isinf(value):
+            return 0.0
+        return float(value)
 
     async def get_prices(self, tickers: List[str], period: str = "1y", db: sqlite3.Connection = None) -> Dict[str, Any]:
         """Get historical prices with caching"""
@@ -100,6 +107,12 @@ class PriceService:
                 if 'date' in df.columns:
                     df["date"] = pd.to_datetime(df["date"])
                     df.set_index("date", inplace=True)
+
+                # Apply safe_float to all numeric columns
+                for col in ["open", "high", "low", "close", "volume"]:
+                    if col in df.columns:
+                        df[col] = df[col].apply(self._safe_float)
+
                 data[ticker] = df.to_dict("records")
 
         return {
@@ -132,6 +145,16 @@ class PriceService:
                 # Convert to records format
                 hist_reset = hist.reset_index()
                 hist_reset["date"] = hist_reset["Date"].dt.strftime("%Y-%m-%d")
+
+                # Apply safe_float to all numeric columns to prevent NaN issues
+                hist_reset["Open"] = hist_reset["Open"].apply(self._safe_float)
+                hist_reset["High"] = hist_reset["High"].apply(self._safe_float)
+                hist_reset["Low"] = hist_reset["Low"].apply(self._safe_float)
+                hist_reset["Close"] = hist_reset["Close"].apply(
+                    self._safe_float)
+                hist_reset["Volume"] = hist_reset["Volume"].apply(
+                    self._safe_float)
+
                 data[ticker] = hist_reset[["date", "Open", "High",
                                            "Low", "Close", "Volume"]].to_dict("records")
 

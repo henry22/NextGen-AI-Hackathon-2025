@@ -71,7 +71,7 @@ class InvestmentMetricsService:
 
             # Handle NaN values for JSON serialization
             def safe_float(value):
-                if pd.isna(value) or np.isnan(value):
+                if pd.isna(value) or np.isnan(value) or np.isinf(value):
                     return 0.0
                 return float(value)
 
@@ -100,17 +100,20 @@ class InvestmentMetricsService:
         """Prepare chart data for frontend visualization"""
         chart_data = []
 
-        for date, row in stock_data.iterrows():
-            # Handle NaN values in chart data
-            def safe_value(value):
-                # Handle pandas Series properly
-                if hasattr(value, 'iloc'):
-                    return float(value.iloc[0])
-                # Handle NaN values
-                if pd.isna(value):
-                    return 0.0
-                return float(value)
+        # Define safe_value function outside the loop for better performance
+        def safe_value(value):
+            # Handle pandas Series properly
+            if hasattr(value, 'iloc'):
+                val = value.iloc[0]
+            else:
+                val = value
 
+            # Handle NaN values
+            if pd.isna(val) or np.isnan(val) or np.isinf(val):
+                return 0.0
+            return float(val)
+
+        for date, row in stock_data.iterrows():
             chart_data.append({
                 "date": date.strftime("%Y-%m-%d"),
                 "portfolio_value": safe_value(row['Portfolio_Value']),
