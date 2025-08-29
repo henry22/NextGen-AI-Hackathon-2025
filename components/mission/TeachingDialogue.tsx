@@ -63,10 +63,32 @@ interface TeachingMessage {
 // ============================================================================
 
 const TICKER_MAP: Record<string, string> = {
-  "Japanese Stocks": "^N225", // Nikkei 225
-  "Tokyo Real Estate": "^N225", // Using Nikkei as proxy
+  // 1990 Japanese Bubble options
+  "Japanese Stocks": "^N225", // Nikkei 225 - Japanese stock market
+  "Tokyo Real Estate": "^N225", // Using Nikkei as proxy for Japanese real estate market (same period correlation)
   "US Treasury Bonds": "^TNX", // 10-year Treasury yield
   Gold: "GLD", // Gold ETF
+
+  // 1997 Asian Financial Crisis options
+  "Asian Stocks": "^N225", // Using Nikkei as proxy for Asian markets
+  "US Stocks": "^GSPC", // S&P 500
+  Bonds: "^TNX", // 10-year Treasury yield
+
+  // 2000 Dot-com Bubble options
+  "Tech Stocks": "^IXIC", // NASDAQ
+  "Traditional Stocks": "^GSPC", // S&P 500
+
+  // 2008 Financial Crisis options
+  "Bank Stocks": "^BKX", // KBW Bank Index
+  "Real Estate": "^DJUSRE", // Dow Jones US Real Estate
+  "Government Bonds": "^TNX", // 10-year Treasury yield
+
+  // 2020 COVID-19 options
+  "Tech Growth": "^IXIC", // NASDAQ
+  "Value Stocks": "^GSPC", // S&P 500
+  "Safe Havens": "GLD", // Gold ETF
+
+  // General assets
   "US Dollar Cash": "UUP", // US Dollar ETF
   "Australian Stocks": "^AXJO", // ASX 200
   Bitcoin: "BTC-USD", // Bitcoin
@@ -725,9 +747,13 @@ export function TeachingDialogue({
         <div className="flex items-center gap-3 mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
           <div className="relative w-20 h-20 shrink-0">
             {/* Simple glow effect based on performance */}
-            <div className={`absolute -inset-1 rounded-full ${
-              performance === "profit" ? "bg-green-400/20" : "bg-orange-400/20"
-            } animate-pulse`}></div>
+            <div
+              className={`absolute -inset-1 rounded-full ${
+                performance === "profit"
+                  ? "bg-green-400/20"
+                  : "bg-orange-400/20"
+              } animate-pulse`}
+            ></div>
             <Image
               src={coach.animatedAvatar}
               alt={coach.name}
@@ -774,9 +800,11 @@ export function TeachingDialogue({
       <div className="flex items-center gap-3 mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
         <div className="relative w-20 h-20 shrink-0">
           {/* Simple glow effect based on performance */}
-          <div className={`absolute -inset-1 rounded-full ${
-            performance === "profit" ? "bg-green-400/20" : "bg-orange-400/20"
-          } animate-pulse`}></div>
+          <div
+            className={`absolute -inset-1 rounded-full ${
+              performance === "profit" ? "bg-green-400/20" : "bg-orange-400/20"
+            } animate-pulse`}
+          ></div>
           <Image
             src={
               isTyping || !showContinue ? coach.animatedAvatar : coach.avatar
