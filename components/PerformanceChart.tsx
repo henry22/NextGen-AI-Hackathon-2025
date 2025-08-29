@@ -33,6 +33,10 @@ interface PerformanceChartProps {
   volatility: number;
   sharpeRatio: number;
   maxDrawdown: number;
+  showMetrics?: boolean;
+  showPortfolioChart?: boolean;
+  showReturnsChart?: boolean;
+  showRiskAnalysis?: boolean;
 }
 
 export function PerformanceChart({
@@ -43,6 +47,10 @@ export function PerformanceChart({
   volatility,
   sharpeRatio,
   maxDrawdown,
+  showMetrics = true,
+  showPortfolioChart = true,
+  showReturnsChart = true,
+  showRiskAnalysis = true,
 }: PerformanceChartProps) {
   const [currentYear, setCurrentYear] = useState(2024); // Default fallback
 
@@ -133,230 +141,238 @@ export function PerformanceChart({
   return (
     <div className="space-y-6">
       {/* Performance Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-2">
-            <div className="flex flex-col space-y-1">
-              <div className="flex items-center space-x-1">
-                <DollarSign className="h-3 w-3 text-green-600 flex-shrink-0" />
-                <p className="text-xs font-medium text-muted-foreground">
-                  Final Value
+      {showMetrics && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-2">
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center space-x-1">
+                  <DollarSign className="h-3 w-3 text-green-600 flex-shrink-0" />
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Final Value
+                  </p>
+                </div>
+                <p className="text-xs font-bold text-center">
+                  {formatCurrency(finalValue)}
                 </p>
               </div>
-              <p className="text-xs font-bold text-center">
-                {formatCurrency(finalValue)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-2">
-            <div className="flex flex-col space-y-1">
-              <div className="flex items-center space-x-1">
-                {totalReturn >= 0 ? (
-                  <TrendingUp className="h-3 w-3 text-green-600 flex-shrink-0" />
-                ) : (
-                  <TrendingDown className="h-3 w-3 text-red-600 flex-shrink-0" />
-                )}
-                <p className="text-xs font-medium text-muted-foreground">
-                  Total Return
-                </p>
-              </div>
-              <p
-                className={`text-xs font-bold text-center ${
-                  totalReturn >= 0 ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {formatPercentage(totalReturn)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-2">
-            <div className="flex flex-col space-y-1">
-              <div className="flex items-center space-x-1">
-                <BarChart3 className="h-3 w-3 text-blue-600 flex-shrink-0" />
-                <p className="text-xs font-medium text-muted-foreground">
-                  Volatility
-                </p>
-              </div>
-              <p className="text-xs font-bold text-center">
-                {formatPercentage(volatility * 100)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-2">
-            <div className="flex flex-col space-y-1">
-              <div className="flex items-center justify-between">
-                <Badge
-                  variant={
-                    sharpeRatio > 1
-                      ? "default"
-                      : sharpeRatio > 0.5
-                      ? "secondary"
-                      : "destructive"
-                  }
-                  className="text-xs px-1 py-0"
+          <Card>
+            <CardContent className="p-2">
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center space-x-1">
+                  {totalReturn >= 0 ? (
+                    <TrendingUp className="h-3 w-3 text-green-600 flex-shrink-0" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-red-600 flex-shrink-0" />
+                  )}
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Total Return
+                  </p>
+                </div>
+                <p
+                  className={`text-xs font-bold text-center ${
+                    totalReturn >= 0 ? "text-green-600" : "text-red-600"
+                  }`}
                 >
-                  Sharpe
-                </Badge>
-                <p className="text-xs font-medium text-muted-foreground">
-                  Ratio
+                  {formatPercentage(totalReturn)}
                 </p>
               </div>
-              <p className="text-xs font-bold text-center">
-                {sharpeRatio > 100
-                  ? `${(sharpeRatio / 100).toFixed(1)}K`
-                  : sharpeRatio.toFixed(2)}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
 
-      {/* Portfolio Value Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Portfolio Performance (Annual)</CardTitle>
-          <CardDescription>
-            Track your investment performance by year
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => value}
-              />
-              <YAxis
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => formatCurrency(value)}
-              />
-              <Tooltip
-                formatter={(value: number) => [
-                  formatCurrency(value),
-                  "Portfolio Value",
-                ]}
-                labelFormatter={(label) => `Year: ${label}`}
-              />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="#3b82f6"
-                fill="#3b82f6"
-                fillOpacity={0.1}
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Returns Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Annual Returns</CardTitle>
-          <CardDescription>
-            Yearly percentage returns showing market performance
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => value}
-              />
-              <YAxis
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `${value}%`}
-              />
-              <Tooltip
-                formatter={(value: number) => [
-                  `${value.toFixed(2)}%`,
-                  "Annual Return",
-                ]}
-                labelFormatter={(label) => `Year: ${label}`}
-              />
-              <Line
-                type="monotone"
-                dataKey="return"
-                stroke="#10b981"
-                strokeWidth={1}
-                dot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Risk Metrics */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Risk Analysis</CardTitle>
-          <CardDescription>
-            Understanding your portfolio's risk characteristics
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Maximum Drawdown</span>
-                <Badge
-                  variant={
-                    maxDrawdown < 0.1
-                      ? "default"
-                      : maxDrawdown < 0.2
-                      ? "secondary"
-                      : "destructive"
-                  }
-                >
-                  {formatPercentage(maxDrawdown * 100)}
-                </Badge>
+          <Card>
+            <CardContent className="p-2">
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center space-x-1">
+                  <BarChart3 className="h-3 w-3 text-blue-600 flex-shrink-0" />
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Volatility
+                  </p>
+                </div>
+                <p className="text-xs font-bold text-center">
+                  {formatPercentage(volatility * 100)}
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Largest peak-to-trough decline during the period
-              </p>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">
-                  Risk-Adjusted Return
-                </span>
-                <Badge
-                  variant={
-                    sharpeRatio > 1
-                      ? "default"
-                      : sharpeRatio > 0.5
-                      ? "secondary"
-                      : "destructive"
-                  }
-                >
+          <Card>
+            <CardContent className="p-2">
+              <div className="flex flex-col space-y-1">
+                <div className="flex items-center justify-between">
+                  <Badge
+                    variant={
+                      sharpeRatio > 1
+                        ? "default"
+                        : sharpeRatio > 0.5
+                        ? "secondary"
+                        : "destructive"
+                    }
+                    className="text-xs px-1 py-0"
+                  >
+                    Sharpe
+                  </Badge>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Ratio
+                  </p>
+                </div>
+                <p className="text-xs font-bold text-center">
                   {sharpeRatio > 100
                     ? `${(sharpeRatio / 100).toFixed(1)}K`
                     : sharpeRatio.toFixed(2)}
-                </Badge>
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Return per unit of risk (Sharpe Ratio)
-              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Portfolio Value Chart */}
+      {showPortfolioChart && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Portfolio Performance (Annual)</CardTitle>
+            <CardDescription>
+              Track your investment performance by year
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => value}
+                />
+                <YAxis
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => formatCurrency(value)}
+                />
+                <Tooltip
+                  formatter={(value: number) => [
+                    formatCurrency(value),
+                    "Portfolio Value",
+                  ]}
+                  labelFormatter={(label) => `Year: ${label}`}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#3b82f6"
+                  fill="#3b82f6"
+                  fillOpacity={0.1}
+                  strokeWidth={2}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Returns Chart */}
+      {showReturnsChart && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Annual Returns</CardTitle>
+            <CardDescription>
+              Yearly percentage returns showing market performance
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => value}
+                />
+                <YAxis
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => `${value}%`}
+                />
+                <Tooltip
+                  formatter={(value: number) => [
+                    `${value.toFixed(2)}%`,
+                    "Annual Return",
+                  ]}
+                  labelFormatter={(label) => `Year: ${label}`}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="return"
+                  stroke="#10b981"
+                  strokeWidth={1}
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Risk Metrics */}
+      {showRiskAnalysis && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Risk Analysis</CardTitle>
+            <CardDescription>
+              Understanding your portfolio's risk characteristics
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Maximum Drawdown</span>
+                  <Badge
+                    variant={
+                      maxDrawdown < 0.1
+                        ? "default"
+                        : maxDrawdown < 0.2
+                        ? "secondary"
+                        : "destructive"
+                    }
+                  >
+                    {formatPercentage(maxDrawdown * 100)}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Largest peak-to-trough decline during the period
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">
+                    Risk-Adjusted Return
+                  </span>
+                  <Badge
+                    variant={
+                      sharpeRatio > 1
+                        ? "default"
+                        : sharpeRatio > 0.5
+                        ? "secondary"
+                        : "destructive"
+                    }
+                  >
+                    {sharpeRatio > 100
+                      ? `${(sharpeRatio / 100).toFixed(1)}K`
+                      : sharpeRatio.toFixed(2)}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Return per unit of risk (Sharpe Ratio)
+                </p>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

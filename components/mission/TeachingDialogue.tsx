@@ -48,19 +48,13 @@ interface TeachingDialogueProps {
 
 interface TeachingMessage {
   id: string;
-  type:
-    | "greeting"
-    | "result"
-    | "metrics"
-    | "chart"
-    | "analysis"
-    | "lesson"
-    | "completion";
+  type: "greeting" | "lesson" | "completion";
   content: string;
   showContinue?: boolean;
   showComplete?: boolean;
   showMetrics?: boolean;
   showChart?: boolean;
+  showReturnsChart?: boolean;
   showAnalysis?: boolean;
 }
 
@@ -491,7 +485,7 @@ export function TeachingDialogue({
       return;
     }
 
-    // Greeting and result combined
+    // Step 1: Greeting and result combined
     newMessages.push({
       id: "greeting",
       type: "greeting",
@@ -499,55 +493,83 @@ export function TeachingDialogue({
       showContinue: true,
     });
 
-    // Key insights
+    // Step 2: Show Portfolio Performance Chart with metrics
     newMessages.push({
-      id: "insights",
-      type: "metrics",
-      content: `**Key Insights:**\n${aiCoachAdvice.educational_insights
-        .map((insight) => `• ${insight}`)
-        .join("\n")}`,
-      showContinue: true,
-      showMetrics: true,
-    });
-
-    // Chart explanation
-    newMessages.push({
-      id: "chart",
-      type: "chart",
-      content: `**Chart Analysis:**\n${aiCoachAdvice.recommendations
+      id: "portfolio_chart_explanation",
+      type: "lesson",
+      content: `**Now let's visualize your journey with the Portfolio Performance Chart.**\n\nThis chart shows how your investment value changed over time, helping you see the ups, downs, and overall trend of your investment journey.\n\n${aiCoachAdvice.recommendations
         .slice(0, 2)
         .map((rec) => `• ${rec}`)
         .join("\n")}`,
       showContinue: true,
+      showMetrics: true, // Show metrics within Portfolio Performance Over Time
       showChart: true,
+      showReturnsChart: false, // Don't show Annual Returns yet
+      showAnalysis: false, // Don't show Risk Analysis yet
     });
 
-    // Recommendations
+    // Step 3: Show Annual Returns Chart with metrics
+    newMessages.push({
+      id: "returns_chart_explanation",
+      type: "lesson",
+      content: `**Let's examine your Annual Returns.**\n\nThis chart shows your year-by-year performance, helping you understand consistency and identify patterns in your investment returns.\n\nYour year-over-year performance shows ${aiCoachAdvice.risk_assessment.toLowerCase()}.`,
+      showContinue: true,
+      showMetrics: true, // Show metrics within Portfolio Performance Over Time
+      showChart: false, // Hide Portfolio Performance Chart
+      showReturnsChart: true, // Show Annual Returns Chart instead
+      showAnalysis: false, // Don't show Risk Analysis yet
+    });
+
+    // Step 4: Show Risk Analysis with metrics
+    newMessages.push({
+      id: "risk_analysis_explanation",
+      type: "lesson",
+      content: `**Finally, let's analyze your Risk Profile.**\n\nRisk analysis helps you understand the trade-offs between potential returns and the volatility you experienced. This is crucial for future investment decisions.\n\nNow you have a complete picture of your investment performance.`,
+      showContinue: true,
+      showMetrics: true, // Show metrics within Portfolio Performance Over Time
+      showChart: false, // Hide Portfolio Performance Chart
+      showReturnsChart: false, // Hide Annual Returns Chart
+      showAnalysis: true, // Show Risk Analysis instead
+    });
+
+    // Step 5: Key recommendations (No Portfolio Performance Over Time)
     newMessages.push({
       id: "recommendations",
       type: "lesson",
-      content: `**My Recommendations:**\n${aiCoachAdvice.recommendations
+      content: `**My Key Recommendations:**\n\n${aiCoachAdvice.recommendations
         .map((rec) => `• ${rec}`)
         .join("\n")}`,
       showContinue: true,
+      showMetrics: false, // Don't show Portfolio Performance Over Time
+      showChart: false,
+      showReturnsChart: false,
+      showAnalysis: false,
     });
 
-    // Next steps
+    // Step 6: Next steps (No Portfolio Performance Over Time)
     newMessages.push({
       id: "next_steps",
       type: "lesson",
-      content: `**Next Steps:**\n${aiCoachAdvice.next_steps
+      content: `**Next Steps:**\n\n${aiCoachAdvice.next_steps
         .map((step) => `• ${step}`)
         .join("\n")}`,
       showContinue: true,
+      showMetrics: false, // Don't show Portfolio Performance Over Time
+      showChart: false,
+      showReturnsChart: false,
+      showAnalysis: false,
     });
 
-    // Completion
+    // Step 7: Completion (No Portfolio Performance Over Time)
     newMessages.push({
       id: "completion",
       type: "completion",
       content: `🎉 ${aiCoachAdvice.encouragement} Ready for your next challenge?`,
       showComplete: true,
+      showMetrics: false, // Don't show Portfolio Performance Over Time
+      showChart: false,
+      showReturnsChart: false,
+      showAnalysis: false,
     });
 
     setMessages(newMessages);
@@ -780,56 +802,11 @@ export function TeachingDialogue({
         </div>
       </div>
 
-      {/* Key Metrics Display */}
-      {currentMessage.showMetrics && (
-        <div className="mb-6">
-          <h4 className="font-semibold text-lg mb-4 text-gray-800">
-            Key Investment Metrics
-          </h4>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {renderMetricsCard(
-              <DollarSign className="h-6 w-6 text-green-600" />,
-              "Final Value",
-              `$${
-                loadingMetrics
-                  ? "Loading..."
-                  : realMetrics
-                  ? Math.round(realMetrics.final_value).toLocaleString()
-                  : Math.round(finalAmount).toLocaleString()
-              }`
-            )}
-            {renderMetricsCard(
-              <TrendingUp className="h-6 w-6 text-green-600" />,
-              "Total Return",
-              formatPercentage(realMetrics?.total_return || actualReturn),
-              (realMetrics?.total_return || actualReturn) > 0
-                ? "text-green-600"
-                : "text-red-600"
-            )}
-            {renderMetricsCard(
-              <BarChart3 className="h-6 w-6 text-blue-600" />,
-              "Volatility",
-              loadingMetrics
-                ? "Loading..."
-                : realMetrics
-                ? `${realMetrics.volatility.toFixed(2)}%`
-                : "16.26%"
-            )}
-            {renderMetricsCard(
-              <Shield className="h-6 w-6 text-purple-600" />,
-              "Sharpe Ratio",
-              loadingMetrics
-                ? "Loading..."
-                : realMetrics
-                ? realMetrics.sharpe_ratio.toFixed(2)
-                : "0.10"
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Performance Chart */}
-      {currentMessage.showChart && (
+      {/* Key Metrics Display - REMOVED, now handled by PerformanceChart */}
+      {/* Performance Chart - Show progressively */}
+      {(currentMessage.showChart ||
+        currentMessage.showReturnsChart ||
+        currentMessage.showAnalysis) && (
         <div className="mb-6">
           <h4 className="font-semibold text-lg mb-4 text-gray-800">
             Portfolio Performance Over Time
@@ -853,56 +830,20 @@ export function TeachingDialogue({
               finalValue={realMetrics?.final_value || finalAmount}
               totalReturn={realMetrics?.total_return || actualReturn}
               volatility={realMetrics ? realMetrics.volatility / 100 : 0.1626}
-              sharpeRatio={realMetrics?.sharpe_ratio || 0.1}
+              sharpeRatio={realMetrics ? realMetrics.sharpe_ratio : 0.1}
               maxDrawdown={
                 realMetrics ? realMetrics.max_drawdown / 100 : -0.1956
               }
+              showMetrics={currentMessage.showMetrics} // Now show metrics here
+              showPortfolioChart={currentMessage.showChart}
+              showReturnsChart={currentMessage.showReturnsChart}
+              showRiskAnalysis={currentMessage.showAnalysis}
             />
           </Card>
         </div>
       )}
 
-      {/* Risk Analysis */}
-      {currentMessage.showAnalysis && (
-        <div className="mb-6">
-          <h4 className="font-semibold text-lg mb-4 text-gray-800">
-            Risk Analysis
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="p-4">
-              <h5 className="font-medium mb-2">Maximum Drawdown</h5>
-              <div className="bg-green-100 text-green-800 px-3 py-2 rounded-lg inline-block">
-                <span className="font-bold">
-                  {loadingMetrics
-                    ? "Loading..."
-                    : realMetrics
-                    ? `${realMetrics.max_drawdown.toFixed(2)}%`
-                    : "-19.56%"}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mt-2">
-                Largest peak-to-trough decline during the period
-              </p>
-            </Card>
-            <Card className="p-4">
-              <h5 className="font-medium mb-2">Risk-Adjusted Return</h5>
-              <div className="bg-red-100 text-red-800 px-3 py-2 rounded-lg inline-block">
-                <span className="font-bold">
-                  {loadingMetrics
-                    ? "Loading..."
-                    : realMetrics
-                    ? realMetrics.sharpe_ratio.toFixed(2)
-                    : "0.10"}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mt-2">
-                Return per unit of risk (Sharpe Ratio)
-              </p>
-            </Card>
-          </div>
-        </div>
-      )}
-
+      {/* Risk Analysis - REMOVED to avoid duplication with PerformanceChart */}
       {/* Action Buttons */}
       <div className="flex justify-end">
         {currentMessage.showComplete ? (
@@ -928,15 +869,30 @@ export function TeachingDialogue({
 
       {/* Progress Indicator */}
       <div className="flex justify-center mt-6">
-        <div className="flex gap-2">
-          {messages.map((_, index) => (
-            <div
-              key={index}
-              className={`w-2 h-2 rounded-full ${
-                index <= currentMessageIndex ? "bg-blue-500" : "bg-gray-300"
-              }`}
-            />
-          ))}
+        <div className="text-center">
+          <div className="flex gap-2 mb-2">
+            {messages.map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full ${
+                  index <= currentMessageIndex ? "bg-blue-500" : "bg-gray-300"
+                }`}
+              />
+            ))}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Step {currentMessageIndex + 1} of {messages.length}
+          </p>
+          <p className="text-xs text-blue-600 mt-1">
+            {currentMessage.showChart &&
+              !currentMessage.showReturnsChart &&
+              !currentMessage.showAnalysis &&
+              "Explaining Portfolio Performance Chart"}
+            {currentMessage.showReturnsChart &&
+              !currentMessage.showAnalysis &&
+              "Explaining Annual Returns Chart"}
+            {currentMessage.showAnalysis && "Explaining Risk Analysis"}
+          </p>
         </div>
       </div>
     </div>
