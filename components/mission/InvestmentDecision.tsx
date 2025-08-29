@@ -13,12 +13,12 @@ interface InvestmentDecisionProps {
   onBack: () => void;
 }
 
-export function InvestmentDecision({ 
-  options, 
-  selectedInvestment, 
-  onInvestmentSelect, 
-  onConfirm, 
-  onBack 
+export function InvestmentDecision({
+  options,
+  selectedInvestment,
+  onInvestmentSelect,
+  onConfirm,
+  onBack,
 }: InvestmentDecisionProps) {
   const getRiskBadgeVariant = (risk: string) => {
     switch (risk.toLowerCase()) {
@@ -50,7 +50,7 @@ export function InvestmentDecision({
             }`}
             onClick={() => onInvestmentSelect(option.id)}
           >
-            <CardContent className="pt-6">
+            <CardContent>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold">{option.name}</h4>

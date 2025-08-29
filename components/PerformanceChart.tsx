@@ -254,20 +254,22 @@ export function PerformanceChart({
           <Card>
             <CardContent className="p-2">
               <div className="flex flex-col space-y-1">
-                <div className="flex items-center justify-between">
-                  <Badge
-                    variant={
-                      sharpeRatio > 1
-                        ? "default"
-                        : sharpeRatio > 0.5
-                        ? "secondary"
-                        : "destructive"
-                    }
-                    className="text-xs px-1 py-0"
-                  >
-                    Sharpe
-                  </Badge>
-                  <p className="text-xs font-medium text-muted-foreground">
+                <div className="flex flex-col space-y-1">
+                  <div className="flex items-center">
+                    <Badge
+                      variant={
+                        sharpeRatio > 1
+                          ? "default"
+                          : sharpeRatio > 0.5
+                          ? "secondary"
+                          : "destructive"
+                      }
+                      className="text-xs px-2 py-0"
+                    >
+                      Sharpe
+                    </Badge>
+                  </div>
+                  <p className="text-xs font-medium text-muted-foreground text-center">
                     Ratio
                   </p>
                 </div>

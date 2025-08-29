@@ -22,7 +22,7 @@ export function MissionIntro({
   return (
     <div className="space-y-6">
       <Card className="bg-muted/30">
-        <CardContent className="pt-6">
+        <CardContent>
           <h4 className="font-serif font-semibold mb-3 flex items-center gap-2">
             <BookOpen className="h-5 w-5" />
             Historical Background
@@ -32,7 +32,7 @@ export function MissionIntro({
       </Card>
 
       <Card className="border-primary/20">
-        <CardContent className="pt-6">
+        <CardContent>
           <h4 className="font-serif font-semibold mb-3 flex items-center gap-2">
             <DollarSign className="h-5 w-5 text-primary" />
             Investment Situation
@@ -42,7 +42,7 @@ export function MissionIntro({
       </Card>
 
       <Card className="bg-accent/10">
-        <CardContent className="pt-6">
+        <CardContent>
           <h4 className="font-serif font-semibold mb-3 flex items-center gap-2">
             <Image
               src={selectedCoach.avatar}

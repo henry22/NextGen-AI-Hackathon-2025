@@ -870,7 +870,7 @@ export function TeachingDialogue({
       {/* Progress Indicator */}
       <div className="flex justify-center mt-6">
         <div className="text-center">
-          <div className="flex gap-2 mb-2">
+          <div className="flex justify-center gap-2 mb-2">
             {messages.map((_, index) => (
               <div
                 key={index}
