@@ -21,6 +21,10 @@ export const metadata: Metadata = {
   title: "Legacy Guardians - Time-Warp Wealth",
   description: "Travel through historical investment missions - A gamified educational platform for learning financial investment",
   generator: "v0.app",
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 
 export default function RootLayout({
