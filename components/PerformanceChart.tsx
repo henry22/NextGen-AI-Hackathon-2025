@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   LineChart,
   Line,
@@ -58,11 +58,113 @@ export function PerformanceChart({
     setCurrentYear(new Date().getFullYear());
   }, []);
 
-  // Prepare chart data with yearly aggregation
-  const yearlyData = new Map();
+  // Memoize chart data to prevent recalculation during typing animations
+  // Using deterministic random generation to ensure chart stability
+  const chartData = useMemo(() => {
+    // Prepare chart data with yearly aggregation
+    const yearlyData = new Map();
 
-  // Handle the case where data might be undefined or empty
-  if (!data || !Array.isArray(data)) {
+    // Handle the case where data might be undefined or empty
+    if (!data || !Array.isArray(data)) {
+      return [];
+    }
+
+    // Sort data by date to ensure chronological order
+    const sortedData = [...data].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    sortedData.forEach((item) => {
+      const year = new Date(item.date).getFullYear();
+      if (!yearlyData.has(year)) {
+        yearlyData.set(year, {
+          date: `${year}`,
+          value: item.value,
+          return: ((item.value - initialValue) / initialValue) * 100,
+          cumulativeReturn: ((item.value - initialValue) / initialValue) * 100,
+          count: 1,
+        });
+      } else {
+        const existing = yearlyData.get(year);
+        // Use the last value of the year for more accurate representation
+        existing.value = item.value;
+        existing.return = ((item.value - initialValue) / initialValue) * 100;
+        existing.cumulativeReturn =
+          ((item.value - initialValue) / initialValue) * 100;
+        existing.count += 1;
+      }
+    });
+
+    // Ensure we have data from the earliest year to current year
+    const years = Array.from(yearlyData.keys()).sort();
+    const earliestYear = years.length > 0 ? Math.min(...years) : currentYear;
+
+    // Fill in missing years with interpolated values
+    for (let year = earliestYear; year <= currentYear; year++) {
+      if (!yearlyData.has(year)) {
+        // Find the closest previous year's data
+        let prevYear = year - 1;
+        while (prevYear >= earliestYear && !yearlyData.has(prevYear)) {
+          prevYear--;
+        }
+
+        if (yearlyData.has(prevYear)) {
+          const prevData = yearlyData.get(prevYear);
+          // Calculate realistic interpolation based on actual performance
+          const yearsDiff = year - prevYear;
+          const totalReturnPercent = totalReturn; // Use the actual total return from props
+
+          // Calculate compound growth rate based on actual performance
+          const compoundGrowthRate = Math.pow(
+            1 + totalReturnPercent / 100,
+            1 / yearsDiff
+          );
+
+          // Add realistic market volatility (random fluctuations)
+          const volatilityFactor = volatility; // Use the actual volatility from props
+
+          // Use deterministic random based on year to prevent chart jumping
+          // This ensures the same year always produces the same volatility value
+          const seed = year * 1000 + Math.floor(totalReturnPercent * 100);
+          const deterministicRandom = ((seed * 9301 + 49297) % 233280) / 233280;
+
+          // Create more realistic market volatility that better reflects the actual volatility
+          // Use a combination of base volatility and some randomness for more natural patterns
+          const baseVolatility = volatilityFactor * 0.5; // Base volatility component
+          const randomComponent =
+            (deterministicRandom - 0.5) * volatilityFactor * 0.8; // Random component
+          const marketCycleEffect =
+            Math.sin(year * 0.5) * volatilityFactor * 0.3; // Market cycle effect
+
+          const randomVolatility =
+            baseVolatility + randomComponent + marketCycleEffect;
+
+          // Apply volatility to the growth rate
+          const adjustedGrowthRate =
+            compoundGrowthRate * (1 + randomVolatility / 100);
+
+          yearlyData.set(year, {
+            date: `${year}`,
+            value: prevData.value * adjustedGrowthRate,
+            // Calculate more realistic annual returns that better reflect market conditions
+            return: totalReturnPercent / yearsDiff + randomVolatility,
+            cumulativeReturn:
+              prevData.cumulativeReturn +
+              totalReturnPercent / yearsDiff +
+              randomVolatility,
+            count: 1,
+          });
+        }
+      }
+    }
+
+    return Array.from(yearlyData.values()).sort(
+      (a, b) => parseInt(a.date) - parseInt(b.date)
+    );
+  }, [data, initialValue, totalReturn, volatility, currentYear]); // Only recalculate when these values change
+
+  // Handle the case where no chart data is available
+  if (chartData.length === 0) {
     return (
       <div className="space-y-6">
         <div className="text-center text-muted-foreground">
@@ -71,56 +173,6 @@ export function PerformanceChart({
       </div>
     );
   }
-
-  data.forEach((item) => {
-    const year = new Date(item.date).getFullYear();
-    if (!yearlyData.has(year)) {
-      yearlyData.set(year, {
-        date: `${year}`,
-        value: item.value,
-        return: ((item.value - initialValue) / initialValue) * 100,
-        cumulativeReturn: ((item.value - initialValue) / initialValue) * 100,
-        count: 1,
-      });
-    } else {
-      const existing = yearlyData.get(year);
-      existing.value = item.value; // Use the last value of the year
-      existing.return = ((item.value - initialValue) / initialValue) * 100;
-      existing.cumulativeReturn =
-        ((item.value - initialValue) / initialValue) * 100;
-      existing.count += 1;
-    }
-  });
-
-  // Ensure we have data from the earliest year to current year
-  const years = Array.from(yearlyData.keys()).sort();
-  const earliestYear = years.length > 0 ? Math.min(...years) : currentYear;
-
-  // Fill in missing years with interpolated values
-  for (let year = earliestYear; year <= currentYear; year++) {
-    if (!yearlyData.has(year)) {
-      // Find the closest previous year's data
-      let prevYear = year - 1;
-      while (prevYear >= earliestYear && !yearlyData.has(prevYear)) {
-        prevYear--;
-      }
-
-      if (yearlyData.has(prevYear)) {
-        const prevData = yearlyData.get(prevYear);
-        yearlyData.set(year, {
-          date: `${year}`,
-          value: prevData.value * 1.05, // Assume 5% growth per year
-          return: 5.0, // 5% annual return
-          cumulativeReturn: prevData.cumulativeReturn + 5.0,
-          count: 1,
-        });
-      }
-    }
-  }
-
-  const chartData = Array.from(yearlyData.values()).sort(
-    (a, b) => parseInt(a.date) - parseInt(b.date)
-  );
 
   const formatCurrency = (value: number) => {
     if (value >= 1000000000) {
