@@ -723,13 +723,17 @@ export function TeachingDialogue({
       <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
         {/* Coach Header */}
         <div className="flex items-center gap-3 mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-          <div className="relative w-12 h-12 shrink-0">
+          <div className="relative w-20 h-20 shrink-0">
+            {/* Simple glow effect based on performance */}
+            <div className={`absolute -inset-1 rounded-full ${
+              performance === "profit" ? "bg-green-400/20" : "bg-orange-400/20"
+            } animate-pulse`}></div>
             <Image
               src={coach.animatedAvatar}
               alt={coach.name}
               fill
-              sizes="48px"
-              className="rounded-full object-cover"
+              sizes="80px"
+              className="rounded-full object-cover border-2 border-white shadow-lg relative z-10"
             />
           </div>
           <div className="flex-1">
@@ -768,15 +772,19 @@ export function TeachingDialogue({
     <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
       {/* Coach Header */}
       <div className="flex items-center gap-3 mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-        <div className="relative w-12 h-12 shrink-0">
+        <div className="relative w-20 h-20 shrink-0">
+          {/* Simple glow effect based on performance */}
+          <div className={`absolute -inset-1 rounded-full ${
+            performance === "profit" ? "bg-green-400/20" : "bg-orange-400/20"
+          } animate-pulse`}></div>
           <Image
             src={
               isTyping || !showContinue ? coach.animatedAvatar : coach.avatar
             }
             alt={coach.name}
             fill
-            sizes="48px"
-            className="rounded-full object-cover"
+            sizes="80px"
+            className="rounded-full object-cover border-2 border-white shadow-lg relative z-10"
           />
         </div>
         <div className="flex-1">
