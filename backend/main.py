@@ -74,7 +74,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:8501",  # React + Streamlit
-        "https://next-gen-ai-hackathon-2025.vercel.app",  # Vercel production
+        # Vercel production (old)
+        "https://next-gen-ai-hackathon-2025.vercel.app",
+        "https://nextgen-ai-nuvc.vercel.app",  # Vercel production (new)
         "https://*.vercel.app",  # All Vercel subdomains
     ],
     allow_credentials=True,
