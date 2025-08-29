@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CheckCircle, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { MissionIntro } from "@/components/mission/MissionIntro";
 import { InvestmentDecision } from "@/components/mission/InvestmentDecision";
 import { MissionResult } from "@/components/mission/MissionResult";
@@ -92,7 +92,7 @@ export function MissionModal({
             {missionStep === "result" &&
               missionResult &&
               (missionResult.performance === "profit" ? (
-                <CheckCircle className="h-6 w-6 text-green-500" />
+                <TrendingUp className="h-6 w-6 text-green-500" />
               ) : (
                 <TrendingDown className="h-6 w-6 text-red-500" />
               ))}
