@@ -7,7 +7,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center">
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
+        <div className="max-w-5xl mx-auto text-center space-y-8">
           {/* Game Logo and Title */}
           <div className="space-y-4">
             <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/10 mb-6">
@@ -85,8 +85,8 @@ export default function HomePage() {
                 <li className="flex items-start gap-2 min-h-[1.5rem]">
                   <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
                   <span className="leading-relaxed">
-                    Risk-free learning environment to safely explore
-                    investment strategies
+                    Risk-free learning environment to safely explore investment
+                    strategies
                   </span>
                 </li>
                 <li className="flex items-start gap-2 min-h-[1.5rem]">
