@@ -296,11 +296,6 @@ export default function InvestmentCompetition({
         </div>
 
         {/* Quotes loading/error */}
-        {loadingQuotes && (
-          <p className="text-sm text-muted-foreground mb-4">
-            Loading latest prices…
-          </p>
-        )}
         {quoteError && (
           <p className="text-sm text-red-600 mb-4">
             Failed to load quotes: {quoteError}
