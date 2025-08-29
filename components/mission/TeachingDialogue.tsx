@@ -73,7 +73,7 @@ const TICKER_MAP: Record<string, string> = {
   Ethereum: "ETH-USD", // Ethereum
 };
 
-const TYPING_SPEED = 30; // milliseconds per character
+const TYPING_SPEED = 15; // milliseconds per character (faster typing)
 
 // Global cache for AI coach advice to prevent duplicate API calls across component instances
 const aiAdviceCache = new Map<
