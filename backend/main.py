@@ -71,8 +71,12 @@ app = FastAPI(
 # CORS middleware for frontend integration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000",
-                   "http://localhost:8501"],  # React + Streamlit
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:8501",  # React + Streamlit
+        "https://next-gen-ai-hackathon-2025.vercel.app",  # Vercel production
+        "https://*.vercel.app",  # All Vercel subdomains
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
