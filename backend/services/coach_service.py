@@ -109,13 +109,16 @@ class CoachService:
         - Avoid encouraging day trading or speculation
         - Make learning fun and engaging
 
-        Always structure your response with:
-        1. Main advice (2-3 sentences)
-        2. Key recommendations (3-4 bullet points)
-        3. Next steps (2-3 actionable items)
-        4. Risk assessment (brief)
-        5. Educational insights (1-2 key concepts)
-        6. Encouragement (motivational closing)
+        IMPORTANT: You MUST structure your response EXACTLY as follows:
+
+        1. **Main Advice:** (2-3 sentences of personalized advice)
+        2. **Key Recommendations:** (3-4 bullet points with actionable advice)
+        3. **Next Steps:** (2-3 specific next steps the player should take)
+        4. **Risk Assessment:** (Brief assessment of their current risk situation)
+        5. **Educational Insights:** (1-2 key financial concepts to learn)
+        6. **Encouragement:** (Motivational closing message)
+
+        Use bullet points (- or •) for lists and ensure each section is clearly marked with the exact headers above.
         """
 
         # Enhanced coach personality-specific guidance with unique language styles
@@ -309,11 +312,21 @@ class CoachService:
         7. Provide advice that aligns with your coaching philosophy
         8. Make the response feel like it's coming from your specific character
 
+        📝 Response Structure Requirements:
+        - **Main Advice:** Give 2-3 sentences of personalized advice based on their specific situation
+        - **Key Recommendations:** Provide 3-4 specific, actionable recommendations tailored to their portfolio and goals
+        - **Next Steps:** Suggest 2-3 concrete next steps they can take immediately
+        - **Risk Assessment:** Analyze their current risk situation and provide specific insights
+        - **Educational Insights:** Teach 1-2 financial concepts relevant to their current experience
+        - **Encouragement:** Give a motivational message that reflects your coaching personality
+
         💡 Remember:
         - This is for educational purposes only
         - They're learning in a risk-free environment
         - Your personality should shine through in every word
         - Make the advice feel personal and authentic to your coaching style
+        - Be specific and actionable, not generic
+        - Reference their actual investment choices and results
         """
 
         return prompt
@@ -329,64 +342,89 @@ class CoachService:
         advice = ""
         recommendations = []
         next_steps = []
-        risk_assessment = "Your portfolio shows good diversification."
-        educational_insights = ["Diversification helps reduce risk"]
-        encouragement = "You're doing great! Keep learning and practicing."
+        risk_assessment = ""
+        educational_insights = []
+        encouragement = ""
 
         for section in sections:
             section = section.strip()
             if not section:
                 continue
 
-            # Extract main advice
-            if "**Main Advice:**" in section:
-                advice = section.replace("1. **Main Advice:**", "").strip()
+            # Extract main advice - more flexible matching
+            if any(keyword in section for keyword in ["**Main Advice:**", "1. **Main Advice:**", "Main Advice:", "1. Main Advice:"]):
+                # Remove various possible prefixes
+                for prefix in ["1. **Main Advice:**", "**Main Advice:**", "1. Main Advice:", "Main Advice:"]:
+                    if prefix in section:
+                        advice = section.replace(prefix, "").strip()
+                        break
 
-            # Extract recommendations
-            elif "**Key Recommendations:**" in section:
+            # Extract recommendations - more flexible matching
+            elif any(keyword in section for keyword in ["**Key Recommendations:**", "2. **Key Recommendations:**", "Key Recommendations:", "2. Key Recommendations:"]):
                 lines = section.split('\n')
                 for line in lines:
                     line = line.strip()
-                    if line.startswith('-') or line.startswith('•'):
-                        rec = line.replace('-', '').replace('•', '').strip()
-                        if rec:
-                            recommendations.append(rec)
+                    # Support multiple bullet point formats
+                    if any(line.startswith(bullet) for bullet in ['-', '•', '*', '1.', '2.', '3.', '4.']):
+                        # Clean up the line
+                        for bullet in ['-', '•', '*', '1.', '2.', '3.', '4.']:
+                            if line.startswith(bullet):
+                                rec = line.replace(bullet, '').strip()
+                                if rec and len(rec) > 5:  # Ensure meaningful content
+                                    recommendations.append(rec)
+                                break
 
-            # Extract next steps
-            elif "**Next Steps:**" in section:
+            # Extract next steps - more flexible matching
+            elif any(keyword in section for keyword in ["**Next Steps:**", "3. **Next Steps:**", "Next Steps:", "3. Next Steps:"]):
                 lines = section.split('\n')
                 for line in lines:
                     line = line.strip()
-                    if line.startswith('-') or line.startswith('•'):
-                        step = line.replace('-', '').replace('•', '').strip()
-                        if step:
-                            next_steps.append(step)
+                    # Support multiple bullet point formats
+                    if any(line.startswith(bullet) for bullet in ['-', '•', '*', '1.', '2.', '3.']):
+                        # Clean up the line
+                        for bullet in ['-', '•', '*', '1.', '2.', '3.']:
+                            if line.startswith(bullet):
+                                step = line.replace(bullet, '').strip()
+                                if step and len(step) > 5:  # Ensure meaningful content
+                                    next_steps.append(step)
+                                break
 
-            # Extract risk assessment
-            elif "**Risk Assessment:**" in section:
-                risk_assessment = section.replace(
-                    "4. **Risk Assessment:**", "").strip()
+            # Extract risk assessment - more flexible matching
+            elif any(keyword in section for keyword in ["**Risk Assessment:**", "4. **Risk Assessment:**", "Risk Assessment:", "4. Risk Assessment:"]):
+                # Remove various possible prefixes
+                for prefix in ["4. **Risk Assessment:**", "**Risk Assessment:**", "4. Risk Assessment:", "Risk Assessment:"]:
+                    if prefix in section:
+                        risk_assessment = section.replace(prefix, "").strip()
+                        break
 
-            # Extract educational insights
-            elif "**Educational Insights:**" in section:
+            # Extract educational insights - more flexible matching
+            elif any(keyword in section for keyword in ["**Educational Insights:**", "5. **Educational Insights:**", "Educational Insights:", "5. Educational Insights:"]):
                 lines = section.split('\n')
                 insights = []
                 for line in lines:
                     line = line.strip()
-                    if line.startswith('-') or line.startswith('•'):
-                        insight = line.replace(
-                            '-', '').replace('•', '').strip()
-                        if insight:
-                            insights.append(insight)
+                    # Support multiple bullet point formats
+                    if any(line.startswith(bullet) for bullet in ['-', '•', '*', '1.', '2.']):
+                        # Clean up the line
+                        for bullet in ['-', '•', '*', '1.', '2.']:
+                            if line.startswith(bullet):
+                                insight = line.replace(bullet, '').strip()
+                                # Ensure meaningful content
+                                if insight and len(insight) > 5:
+                                    insights.append(insight)
+                                break
                 if insights:
                     educational_insights = insights
 
-            # Extract encouragement
-            elif "**Encouragement:**" in section:
-                encouragement = section.replace(
-                    "6. **Encouragement:**", "").strip()
+            # Extract encouragement - more flexible matching
+            elif any(keyword in section for keyword in ["**Encouragement:**", "6. **Encouragement:**", "Encouragement:", "6. Encouragement:"]):
+                # Remove various possible prefixes
+                for prefix in ["6. **Encouragement:**", "**Encouragement:**", "6. Encouragement:", "Encouragement:"]:
+                    if prefix in section:
+                        encouragement = section.replace(prefix, "").strip()
+                        break
 
-        # Enhanced fallback with personality-based content
+        # Enhanced fallback with personality-based content only when AI fails to provide content
         if not advice:
             # Extract coach personality for personalized fallback
             coach_personality = None
@@ -400,7 +438,7 @@ class CoachService:
                 elif "Income Coach" in request.player_context:
                     coach_personality = "Income"
 
-            # Create personalized fallback advice
+            # Create personalized fallback advice only if AI completely failed
             if coach_personality == "Conservative":
                 advice = "Steady as she goes! Your investment journey is about building lasting wealth through careful, calculated decisions."
             elif coach_personality == "Balanced":
@@ -410,74 +448,99 @@ class CoachService:
             elif coach_personality == "Income":
                 advice = "Cash flow is king! Focus on building investments that work for you consistently."
             else:
+                # Use the raw AI response as fallback
                 advice = advice_text[:200] + \
                     "..." if len(advice_text) > 200 else advice_text
 
+        # Only provide fallback recommendations if AI completely failed
         if not recommendations:
-            # Personality-based fallback recommendations
+            # Extract coach personality for minimal fallback
+            coach_personality = None
+            if request.player_context:
+                if "Conservative Coach" in request.player_context:
+                    coach_personality = "Conservative"
+                elif "Balanced Coach" in request.player_context:
+                    coach_personality = "Balanced"
+                elif "Aggressive Coach" in request.player_context:
+                    coach_personality = "Aggressive"
+                elif "Income Coach" in request.player_context:
+                    coach_personality = "Income"
+
+            # Minimal fallback only when AI fails completely
             if coach_personality == "Conservative":
                 recommendations = [
                     "Focus on capital preservation and steady growth",
-                    "Learn about bonds and defensive stocks",
-                    "Practice patience in volatile markets",
-                    "Build a foundation of safe investments"
+                    "Learn about bonds and defensive stocks"
                 ]
             elif coach_personality == "Balanced":
                 recommendations = [
                     "Maintain diversified asset allocation",
-                    "Learn about risk-reward trade-offs",
-                    "Practice regular portfolio rebalancing",
-                    "Explore both growth and income strategies"
+                    "Learn about risk-reward trade-offs"
                 ]
             elif coach_personality == "Aggressive":
                 recommendations = [
                     "Embrace high-growth opportunities",
-                    "Learn about emerging markets and innovation",
-                    "Practice risk management in volatile assets",
-                    "Focus on capital appreciation strategies"
+                    "Learn about emerging markets and innovation"
                 ]
             elif coach_personality == "Income":
                 recommendations = [
                     "Focus on dividend-paying investments",
-                    "Learn about compound interest effects",
-                    "Practice building passive income streams",
-                    "Prioritize consistent cash flow generation"
+                    "Learn about compound interest effects"
                 ]
             else:
                 recommendations = [
                     "Focus on diversification",
-                    "Learn about different asset classes",
-                    "Practice risk management",
-                    "Build long-term investment habits"
+                    "Learn about different asset classes"
                 ]
 
+        # Only provide fallback next steps if AI completely failed
         if not next_steps:
-            # Personality-based fallback next steps
+            # Extract coach personality for minimal fallback
+            coach_personality = None
+            if request.player_context:
+                if "Conservative Coach" in request.player_context:
+                    coach_personality = "Conservative"
+                elif "Balanced Coach" in request.player_context:
+                    coach_personality = "Balanced"
+                elif "Aggressive Coach" in request.player_context:
+                    coach_personality = "Aggressive"
+                elif "Income Coach" in request.player_context:
+                    coach_personality = "Income"
+
+            # Minimal fallback only when AI fails completely
             if coach_personality == "Conservative":
                 next_steps = [
-                    "Continue building your safe investment foundation",
-                    "Practice with low-risk asset combinations"
+                    "Continue building your safe investment foundation"
                 ]
             elif coach_personality == "Balanced":
                 next_steps = [
-                    "Try different portfolio balance strategies",
-                    "Practice with moderate risk combinations"
+                    "Try different portfolio balance strategies"
                 ]
             elif coach_personality == "Aggressive":
                 next_steps = [
-                    "Explore high-growth investment opportunities",
-                    "Practice with higher-risk strategies"
+                    "Explore high-growth investment opportunities"
                 ]
             elif coach_personality == "Income":
                 next_steps = [
-                    "Focus on income-generating investments",
-                    "Practice building cash flow strategies"
+                    "Focus on income-generating investments"
                 ]
             else:
                 next_steps = [
-                    "Continue learning about investing",
-                    "Practice with different portfolios"
+                    "Continue learning about investing"
                 ]
+
+        # Only provide fallback risk assessment if AI completely failed
+        if not risk_assessment:
+            risk_assessment = "Consider your risk tolerance and investment goals when making decisions."
+
+        # Only provide fallback educational insights if AI completely failed
+        if not educational_insights:
+            educational_insights = [
+                "Diversification helps reduce overall portfolio risk"]
+
+        # Only provide fallback encouragement if AI completely failed
+        if not encouragement:
+            encouragement = "Keep learning and practicing! Every investment is a learning opportunity."
 
         print(
             f"📋 Parsed: Advice={len(advice)} chars, Recs={len(recommendations)}, Steps={len(next_steps)}")
