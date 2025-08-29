@@ -140,7 +140,18 @@ async def root():
         "version": "1.0.0",
         "status": "running",
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
+        "available_routes": [
+            "/",
+            "/docs",
+            "/health",
+            "/seed/events",
+            "/prices",
+            "/quotes",
+            "/coach",
+            "/simulate"
+        ],
+        "timestamp": datetime.now().isoformat()
     }
 
 # Health check
