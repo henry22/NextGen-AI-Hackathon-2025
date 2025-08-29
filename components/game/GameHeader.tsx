@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface GameHeaderProps {
@@ -17,6 +18,13 @@ export function GameHeader({ playerLevel, playerXP, totalScore }: GameHeaderProp
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-serif font-black text-primary">
+              <Image
+                src="/favicon.png"
+                alt="NUVC Icon"
+                width={48}
+                height={48}
+                className="object-contain inline-block mr-2"
+              />
               Legacy Guardians
             </h1>
             <p className="text-sm text-muted-foreground">
