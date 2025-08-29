@@ -11,16 +11,14 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto text-center space-y-8">
           {/* Game Logo and Title */}
           <div className="space-y-4">
-            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-primary/10 mb-6">
+            <h1 className="text-6xl font-serif font-black text-primary mb-2 flex items-center justify-center gap-4">
               <Image
-                src="/nuvc-logo.png"
-                alt="NUVC Logo"
-                width={48}
-                height={48}
+                src="/favicon.png"
+                alt="NUVC Icon"
+                width={88}
+                height={88}
                 className="object-contain"
               />
-            </div>
-            <h1 className="text-6xl font-serif font-black text-primary mb-2">
               Legacy Guardians
             </h1>
             <p className="text-2xl font-medium text-muted-foreground">
@@ -75,95 +73,10 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Game Features */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <div className="text-left bg-card rounded-lg shadow-lg p-6 h-full min-w-0">
-              <h3 className="font-serif font-semibold mb-3 flex items-center gap-2">
-                <div className="h-5 w-5 text-primary text-lg">🎯</div>
-                Game Features
-              </h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2 min-h-[1.5rem]">
-                  <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
-                  <span className="leading-relaxed">
-                    Experience major financial events from 1990-2025
-                  </span>
-                </li>
-                <li className="flex items-start gap-2 min-h-[1.5rem]">
-                  <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
-                  <span className="leading-relaxed">
-                    Risk-free learning environment to safely explore investment
-                    strategies
-                  </span>
-                </li>
-                <li className="flex items-start gap-2 min-h-[1.5rem]">
-                  <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
-                  <span className="leading-relaxed">
-                    Personalized AI coach guidance and feedback
-                  </span>
-                </li>
-                <li className="flex items-start gap-2 min-h-[1.5rem]">
-                  <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
-                  <span className="leading-relaxed">
-                    Progressive unlocking system for structured learning
-                  </span>
-                </li>
-                <li className="flex items-start gap-2 min-h-[1.5rem]">
-                  <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5"></div>
-                  <span className="leading-relaxed">
-                    Real-time market simulation and competition mode
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="text-left bg-card rounded-lg shadow-lg p-6 h-full min-w-0">
-              <h3 className="font-serif font-semibold mb-3 flex items-center gap-2">
-                <div className="h-5 w-5 text-primary text-lg">📖</div>
-                Learning Objectives
-              </h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2 min-h-[1.5rem]">
-                  <div className="w-2 h-2 rounded-full bg-secondary flex-shrink-0 mt-1.5"></div>
-                  <span className="leading-relaxed">
-                    Understand the historical context behind major financial
-                    crises
-                  </span>
-                </li>
-                <li className="flex items-start gap-2 min-h-[1.5rem]">
-                  <div className="w-2 h-2 rounded-full bg-secondary flex-shrink-0 mt-1.5"></div>
-                  <span className="leading-relaxed">
-                    Learn how different investment strategies perform during
-                    various market conditions
-                  </span>
-                </li>
-                <li className="flex items-start gap-2 min-h-[1.5rem]">
-                  <div className="w-2 h-2 rounded-full bg-secondary flex-shrink-0 mt-1.5"></div>
-                  <span className="leading-relaxed">
-                    Develop risk assessment and portfolio management skills
-                  </span>
-                </li>
-                <li className="flex items-start gap-2 min-h-[1.5rem]">
-                  <div className="w-2 h-2 rounded-full bg-secondary flex-shrink-0 mt-1.5"></div>
-                  <span className="leading-relaxed">
-                    Practice decision-making under uncertainty with real data
-                  </span>
-                </li>
-                <li className="flex items-start gap-2 min-h-[1.5rem]">
-                  <div className="w-2 h-2 rounded-full bg-secondary flex-shrink-0 mt-1.5"></div>
-                  <span className="leading-relaxed">
-                    Build confidence for real-world investing through guided
-                    practice
-                  </span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
           {/* Start Game Button */}
           <div className="text-center pt-8">
             <Link href="/timeline">
-              <button className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-12 py-6 font-semibold rounded-lg transition-colors">
+              <button className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-4 font-semibold rounded-lg transition-colors">
                 <Play className="inline-block h-6 w-6 mr-3" />
                 Start Time Adventure
               </button>
