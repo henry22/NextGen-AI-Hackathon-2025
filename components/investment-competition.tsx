@@ -302,42 +302,44 @@ export default function InvestmentCompetition({
           </p>
         )}
 
-        {/* Capital Overview */}
-        <Card className="mb-8 border-primary/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-primary">
-              <DollarSign className="h-6 w-6" /> Capital Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-6">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  Starting Capital
-                </p>
-                <p className="text-2xl font-bold text-primary">
-                  ${startingCapital}
-                </p>
+        {/* Capital Overview - Sticky positioning */}
+        <div className="sticky top-4 z-10 mb-8">
+          <Card className="border-primary/20 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-primary">
+                <DollarSign className="h-6 w-6" /> Capital Overview
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-6">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Starting Capital
+                  </p>
+                  <p className="text-2xl font-bold text-primary">
+                    ${startingCapital}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">Allocated</p>
+                  <p className="text-2xl font-bold text-secondary">
+                    ${totalAllocated}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">Remaining</p>
+                  <p className="text-2xl font-bold text-accent">
+                    ${remainingCapital}
+                  </p>
+                </div>
               </div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Allocated</p>
-                <p className="text-2xl font-bold text-secondary">
-                  ${totalAllocated}
-                </p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Remaining</p>
-                <p className="text-2xl font-bold text-accent">
-                  ${remainingCapital}
-                </p>
-              </div>
-            </div>
-            <Progress
-              value={(totalAllocated / startingCapital) * 100}
-              className="mt-4"
-            />
-          </CardContent>
-        </Card>
+              <Progress
+                value={(totalAllocated / startingCapital) * 100}
+                className="mt-4"
+              />
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Investment Options */}
