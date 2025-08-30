@@ -17,13 +17,13 @@ export function GameHeader({ playerLevel, playerXP, totalScore }: GameHeaderProp
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-serif font-black text-primary">
+            <h1 className="text-3xl font-serif font-black text-primary flex items-center justify-center gap-2">
               <Image
                 src="/favicon.png"
                 alt="NUVC Icon"
                 width={48}
                 height={48}
-                className="object-contain inline-block mr-2"
+                className="object-contain "
               />
               Legacy Guardians
             </h1>

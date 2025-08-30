@@ -11,7 +11,7 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto text-center space-y-8">
           {/* Game Logo and Title */}
           <div className="space-y-4">
-            <h1 className="text-6xl font-serif font-black text-primary mb-2 flex items-center justify-center gap-4">
+            <h1 className="text-6xl font-serif font-black text-primary mb-2 flex items-center justify-center gap-2">
               <Image
                 src="/favicon.png"
                 alt="NUVC Icon"
