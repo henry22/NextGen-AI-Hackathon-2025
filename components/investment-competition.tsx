@@ -500,9 +500,7 @@ export default function InvestmentCompetition({
                               onValueChange={(value) =>
                                 updateAllocation(option.id, value[0])
                               }
-                              max={
-                                remainingCapital + (allocations[option.id] || 0)
-                              }
+                              max={startingCapital}
                               step={10}
                               className="w-full"
                             />
@@ -588,9 +586,7 @@ export default function InvestmentCompetition({
                               onValueChange={(value) =>
                                 updateAllocation(option.id, value[0])
                               }
-                              max={
-                                remainingCapital + (allocations[option.id] || 0)
-                              }
+                              max={startingCapital}
                               step={10}
                               className="w-full"
                             />
