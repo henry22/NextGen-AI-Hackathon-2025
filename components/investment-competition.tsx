@@ -238,6 +238,18 @@ export default function InvestmentCompetition({
 
   const remainingCapital = startingCapital - totalAllocated;
 
+  // === calculate pecentage of different type (different colour) ===
+  const sumByType = (type: AssetType) =>
+    investmentOptions
+      .filter((o) => o.type === type)
+      .reduce((acc, o) => acc + (allocations[o.id] || 0), 0);
+
+  const allocStock = sumByType("stock");
+  const allocFund = sumByType("fund");
+  const allocCrypto = sumByType("crypto");
+
+  const pct = (v: number) => (v / startingCapital) * 100;
+
   const getRiskColor = (risk: string) => {
     switch (risk) {
       case "low":
@@ -271,6 +283,40 @@ export default function InvestmentCompetition({
       onStartTrading(allocations, selectedCoach);
     }
   };
+
+  //Progress bar colour
+  type AssetType = InvestmentOptionMeta["type"];
+
+  const TYPE_COLORS: Record<
+    AssetType,
+    { range: string; track: string; thumb: string; legend: string }
+  > = {
+    stock: {
+      range: "bg-emerald-500",
+      track: "bg-emerald-100",
+      thumb: "border-emerald-500",
+      legend: "bg-emerald-500",
+    },
+    fund: {
+      range: "bg-indigo-500",
+      track: "bg-indigo-100",
+      thumb: "border-indigo-500",
+      legend: "bg-indigo-500",
+    },
+    crypto: {
+      range: "bg-amber-500",
+      track: "bg-amber-100",
+      thumb: "border-amber-500",
+      legend: "bg-amber-500",
+    },
+  };
+
+  const sliderTheme = (type: AssetType) =>
+    [
+      `[&_[data-slot=track]]:${TYPE_COLORS[type].track}`,
+      `[&_[data-slot=range]]:${TYPE_COLORS[type].range}`,
+      `[&_[data-slot=thumb]]:${TYPE_COLORS[type].thumb}`,
+    ].join(" ");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-card/30 to-background">
@@ -333,10 +379,55 @@ export default function InvestmentCompetition({
                   </p>
                 </div>
               </div>
-              <Progress
-                value={(totalAllocated / startingCapital) * 100}
-                className="mt-4"
-              />
+              {/* Stacked progress: Stocks / Funds / Crypto / Remaining */}
+              <div className="mt-4 h-3 w-full rounded-full bg-secondary overflow-hidden flex">
+                <div
+                  className={`h-full ${TYPE_COLORS.stock.legend}`}
+                  style={{ width: `${pct(allocStock)}%` }}
+                  title={`Stocks $${allocStock}`}
+                />
+                <div
+                  className={`h-full ${TYPE_COLORS.fund.legend}`}
+                  style={{ width: `${pct(allocFund)}%` }}
+                  title={`Funds $${allocFund}`}
+                />
+                <div
+                  className={`h-full ${TYPE_COLORS.crypto.legend}`}
+                  style={{ width: `${pct(allocCrypto)}%` }}
+                  title={`Crypto $${allocCrypto}`}
+                />
+                <div
+                  className="h-full bg-muted"
+                  style={{ width: `${pct(remainingCapital)}%` }}
+                  title={`Remaining $${remainingCapital}`}
+                />
+              </div>
+
+              {/* 图例 */}
+              <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  <span
+                    className={`inline-block h-2 w-2 rounded-sm ${TYPE_COLORS.stock.legend}`}
+                  />
+                  Stocks ${allocStock}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <span
+                    className={`inline-block h-2 w-2 rounded-sm ${TYPE_COLORS.fund.legend}`}
+                  />
+                  Funds ${allocFund}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <span
+                    className={`inline-block h-2 w-2 rounded-sm ${TYPE_COLORS.crypto.legend}`}
+                  />
+                  Crypto ${allocCrypto}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <span className="inline-block h-2 w-2 rounded-sm bg-muted" />
+                  Remaining ${remainingCapital}
+                </span>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -420,7 +511,7 @@ export default function InvestmentCompetition({
                               }
                               max={startingCapital}
                               step={10}
-                              className="w-full"
+                              className={`w-full ${sliderTheme(option.type)}`}
                             />
                           </div>
                         </CardContent>
@@ -502,7 +593,7 @@ export default function InvestmentCompetition({
                               }
                               max={startingCapital}
                               step={10}
-                              className="w-full"
+                              className={`w-full ${sliderTheme(option.type)}`}
                             />
                           </div>
                         </CardContent>
@@ -588,7 +679,7 @@ export default function InvestmentCompetition({
                               }
                               max={startingCapital}
                               step={10}
-                              className="w-full"
+                              className={`w-full ${sliderTheme(option.type)}`}
                             />
                           </div>
                         </CardContent>
