@@ -1,22 +1,26 @@
 import React from "react";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Gift } from "lucide-react";
 
 interface GameHeaderProps {
   playerLevel: number;
   playerXP: number;
   totalScore: number;
+  onRewardsClick?: () => void;
 }
 
 export function GameHeader({
   playerLevel,
   playerXP,
   totalScore,
+  onRewardsClick,
 }: GameHeaderProps) {
   const xpToNextLevel = 1000;
   const xpProgress = ((playerXP % xpToNextLevel) / xpToNextLevel) * 100;
@@ -41,6 +45,20 @@ export function GameHeader({
             </p>
           </div>
           <div className="flex justify-center items-center gap-3 sm:gap-6 mt-2 sm:mt-0">
+            {/* Rewards Button */}
+            {onRewardsClick && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onRewardsClick}
+                className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 hover:from-yellow-100 hover:to-orange-100"
+              >
+                <Gift className="h-4 w-4 text-yellow-600" />
+                <span className="text-yellow-700 font-medium hidden sm:inline">
+                  Rewards
+                </span>
+              </Button>
+            )}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>

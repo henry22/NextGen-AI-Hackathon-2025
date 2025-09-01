@@ -10,6 +10,7 @@ import { TimelineSection } from "@/components/game/TimelineSection";
 import { EventDetailModal } from "@/components/modals/EventDetailModal";
 import { MissionModal } from "@/components/modals/MissionModal";
 import { SummaryModal } from "@/components/modals/SummaryModal";
+import { RewardsModal } from "@/components/modals/RewardsModal";
 
 // Import data
 import { financialEvents, FinancialEvent } from "@/components/data/events";
@@ -32,6 +33,8 @@ export default function TimelinePage() {
   const summaryTimerRef = useRef<number | null>(null);
   const [completedMissions, setCompletedMissions] = useState<string[]>([]);
   const [competitionUnlocked, setCompetitionUnlocked] = useState(false);
+  const [showRewardsStore, setShowRewardsStore] = useState(false);
+  const [redeemedRewards, setRedeemedRewards] = useState<string[]>([]);
 
   // Mission game state management
   const [missionStep, setMissionStep] = useState<
@@ -186,6 +189,17 @@ export default function TimelinePage() {
     window.location.href = "/competition";
   };
 
+  const redeemReward = (reward: any) => {
+    if (playerXP >= reward.cost && !redeemedRewards.includes(reward.id)) {
+      setPlayerXP((prev) => prev - reward.cost);
+      setRedeemedRewards((prev) => [...prev, reward.id]);
+      // In a real app, this would trigger the actual reward delivery
+      alert(
+        `Congratulations! You've redeemed a ${reward.name}. Check your email for the voucher code!`
+      );
+    }
+  };
+
   const closeMissionModal = () => {
     setGameStarted(false);
     setMissionEvent(null);
@@ -204,6 +218,7 @@ export default function TimelinePage() {
         playerLevel={playerLevel}
         playerXP={playerXP}
         totalScore={totalScore}
+        onRewardsClick={() => setShowRewardsStore(true)}
       />
 
       <div className="container mx-auto sm:px-4 py-8">
@@ -219,7 +234,9 @@ export default function TimelinePage() {
             <ProgressCard
               playerXP={playerXP}
               completedCount={financialEvents.filter((e) => e.completed).length}
-              availableCount={financialEvents.filter((e) => e.unlocked).length}
+              availableCount={
+                financialEvents.filter((e) => e.unlocked && !e.completed).length
+              }
             />
           </div>
 
@@ -273,6 +290,15 @@ export default function TimelinePage() {
           setSummaryDismissed(true);
         }}
         onRestart={() => window.location.reload()}
+      />
+
+      {/* Rewards Modal */}
+      <RewardsModal
+        open={showRewardsStore}
+        onOpenChange={setShowRewardsStore}
+        playerXP={playerXP}
+        redeemedRewards={redeemedRewards}
+        onRedeemReward={redeemReward}
       />
     </div>
   );

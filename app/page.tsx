@@ -39,7 +39,7 @@ export default function HomePage() {
                 decisions in a risk-free environment.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 sm:mt-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 sm:mt-8">
                 <div className="text-center p-3 sm:p-4">
                   <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-green-100 mb-2 sm:mb-3">
                     <div className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 text-lg sm:text-xl">
@@ -79,6 +79,20 @@ export default function HomePage() {
                   </h3>
                   <p className="text-xs sm:text-sm text-muted-foreground">
                     Professional coaches provide personalized guidance
+                  </p>
+                </div>
+
+                <div className="text-center p-3 sm:p-4">
+                  <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-yellow-100 mb-2 sm:mb-3">
+                    <div className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600 text-lg sm:text-xl">
+                      🎁
+                    </div>
+                  </div>
+                  <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">
+                    Real Rewards
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Exchange XP for gift cards from partner brands
                   </p>
                 </div>
               </div>
