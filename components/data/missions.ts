@@ -5,6 +5,7 @@ export interface InvestmentOption {
   risk: string;
   expectedReturn: string;
   actualReturn: number;
+  investmentInsight: string;
 }
 
 export interface MissionData {
@@ -29,6 +30,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "High",
         expectedReturn: "15-25%",
         actualReturn: -60,
+        investmentInsight: "Japanese stocks are at historic highs due to the economic bubble. While returns look attractive, the market is showing signs of overvaluation with P/E ratios at unsustainable levels.",
       },
       {
         id: "realestate",
@@ -37,6 +39,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "High",
         expectedReturn: "20-30%",
         actualReturn: -70,
+        investmentInsight: "Tokyo real estate prices have increased 10x in the past decade. Land prices in central Tokyo are now the highest in the world, making this a very high-risk speculation.",
       },
       {
         id: "bonds",
@@ -45,6 +48,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Low",
         expectedReturn: "8-10%",
         actualReturn: 45,
+        investmentInsight: "US Treasury bonds offer stable returns backed by the US government. With moderate yields and low volatility, they provide portfolio stability during uncertain times.",
       },
       {
         id: "gold",
@@ -53,6 +57,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Medium",
         expectedReturn: "5-8%",
         actualReturn: 20,
+        investmentInsight: "Gold serves as a hedge against inflation and currency devaluation. While returns are modest, it maintains value during economic uncertainty and provides portfolio diversification.",
       },
     ],
     coachAdvice: {
@@ -81,6 +86,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Extreme",
         expectedReturn: "30-50%",
         actualReturn: -65,
+        investmentInsight: "Asian markets are in free fall due to currency crisis. While prices look attractive, capital flight and currency devaluation pose extreme risks to foreign investors.",
       },
       {
         id: "us-stocks",
@@ -89,6 +95,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Medium",
         expectedReturn: "12-18%",
         actualReturn: 28,
+        investmentInsight: "US stocks are benefiting from being a safe haven during the Asian crisis. The US economy remains strong with steady growth and stable currency.",
       },
       {
         id: "bonds",
@@ -97,6 +104,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Low",
         expectedReturn: "6-8%",
         actualReturn: 15,
+        investmentInsight: "Safe haven asset during the crisis. US government bonds provide stability and capital preservation when global markets are volatile.",
       },
       {
         id: "cash",
@@ -105,6 +113,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "None",
         expectedReturn: "4-5%",
         actualReturn: 8,
+        investmentInsight: "Cash provides maximum liquidity and no risk during market turmoil. The US dollar is strengthening against Asian currencies, providing natural hedge.",
       },
     ],
     coachAdvice: {
@@ -133,6 +142,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "High",
         expectedReturn: "25-40%",
         actualReturn: -78,
+        investmentInsight: "Tech stocks are trading at extreme P/E ratios with many companies having no profits. The dot-com euphoria has created unsustainable valuations based on future growth promises.",
       },
       {
         id: "dotcom",
@@ -141,6 +151,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Extreme",
         expectedReturn: "50-100%",
         actualReturn: -95,
+        investmentInsight: "Most dot-com companies burn cash with no clear path to profitability. While the internet is revolutionary, current valuations assume perfect execution and unlimited growth.",
       },
       {
         id: "traditional",
@@ -149,6 +160,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Medium",
         expectedReturn: "10-15%",
         actualReturn: -25,
+        investmentInsight: "Traditional companies have reasonable valuations but face disruption from the internet. They offer more stability than tech stocks but may struggle in the 'new economy'.",
       },
       {
         id: "cash",
@@ -157,6 +169,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "None",
         expectedReturn: "3-5%",
         actualReturn: 15,
+        investmentInsight: "Cash provides safety and optionality during market euphoria. While earning modest returns, it positions you to invest when asset prices become more reasonable.",
       },
     ],
     coachAdvice: {
@@ -185,6 +198,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Extreme",
         expectedReturn: "20-30%",
         actualReturn: -55,
+        investmentInsight: "Global deleveraging and credit contraction are causing widespread stock selloffs. While prices may look attractive, corporate earnings face severe headwinds from recession.",
       },
       {
         id: "banks",
@@ -193,6 +207,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Extreme",
         expectedReturn: "40-60%",
         actualReturn: -75,
+        investmentInsight: "Banks face potential insolvency from mortgage losses and frozen credit markets. While government bailouts may help, massive writedowns and dilution pose extreme risks to shareholders.",
       },
       {
         id: "bonds",
@@ -201,6 +216,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Low",
         expectedReturn: "4-6%",
         actualReturn: 25,
+        investmentInsight: "Flight-to-quality drives demand for US Treasuries during the financial crisis. Government bonds offer safety and capital appreciation as yields fall amid Fed rate cuts.",
       },
       {
         id: "gold",
@@ -209,6 +225,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Medium",
         expectedReturn: "8-12%",
         actualReturn: 35,
+        investmentInsight: "Gold serves as a hedge against financial system collapse and currency debasement. Central bank money printing and economic uncertainty drive demand for this traditional safe haven.",
       },
     ],
     coachAdvice: {
@@ -237,6 +254,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Medium",
         expectedReturn: "15-25%",
         actualReturn: 85,
+        investmentInsight: "Tech companies are benefiting from pandemic-driven digital transformation. Remote work and e-commerce trends favor these giants with strong balance sheets.",
       },
       {
         id: "travel-stocks",
@@ -245,6 +263,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Extreme",
         expectedReturn: "50-100%",
         actualReturn: -45,
+        investmentInsight: "Travel industry faces unprecedented disruption from lockdowns and border closures. While eventual recovery is likely, airlines carry high debt loads and may face bankruptcy or dilution.",
       },
       {
         id: "bonds",
@@ -253,6 +272,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Low",
         expectedReturn: "2-4%",
         actualReturn: 12,
+        investmentInsight: "Ultra-low interest rates and massive Fed stimulus create safe haven demand for Treasuries. While yields are low, bonds provide stability during market volatility.",
       },
       {
         id: "gold",
@@ -261,6 +281,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Medium",
         expectedReturn: "8-15%",
         actualReturn: 28,
+        investmentInsight: "Unprecedented monetary stimulus and negative real interest rates favor gold as an inflation hedge. Central bank money printing and currency debasement concerns drive precious metal demand.",
       },
     ],
     coachAdvice: {
@@ -289,6 +310,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "High",
         expectedReturn: "20-40%",
         actualReturn: 0,
+        investmentInsight: "AI revolution is transforming industries, but valuations are high and competition intense. Early winners may dominate, but market is still evolving rapidly.",
       },
       {
         id: "energy",
@@ -297,6 +319,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "High",
         expectedReturn: "15-30%",
         actualReturn: 0,
+        investmentInsight: "Government subsidies and climate initiatives drive green energy adoption, but rising interest rates hurt capital-intensive projects. Regulatory changes and competition create volatility.",
       },
       {
         id: "tips",
@@ -305,6 +328,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Low",
         expectedReturn: "5-8%",
         actualReturn: 0,
+        investmentInsight: "TIPS provide direct inflation protection as principal adjusts with CPI changes. With persistent inflation concerns and high nominal rates, they offer real return preservation.",
       },
       {
         id: "commodities",
@@ -313,6 +337,7 @@ export const missionData: Record<number, MissionData> = {
         risk: "Medium",
         expectedReturn: "10-20%",
         actualReturn: 0,
+        investmentInsight: "Geopolitical tensions and supply chain disruptions support commodity prices as inflation hedges. However, recession risks and central bank tightening may dampen demand.",
       },
     ],
     coachAdvice: {

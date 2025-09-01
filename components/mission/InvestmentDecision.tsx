@@ -2,7 +2,8 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, BarChart3 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { DollarSign, BarChart3, InfoIcon } from "lucide-react";
 import { InvestmentOption } from "@/components/data/missions";
 
 interface InvestmentDecisionProps {
@@ -52,11 +53,27 @@ export function InvestmentDecision({
           >
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-start justify-between">
                   <h4 className="font-semibold">{option.name}</h4>
-                  <Badge variant={getRiskBadgeVariant(option.risk)}>
-                    {option.risk} Risk
-                  </Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge variant={getRiskBadgeVariant(option.risk)}>
+                      {option.risk} Risk
+                    </Badge>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <InfoIcon 
+                        className="h-4 w-4 text-muted-foreground hover:text-primary cursor-help transition-all duration-300 hover:animate-none hover:shadow-lg hover:shadow-primary/30 hover:scale-110" 
+                        style={{
+                          animation: 'pulse 1.5s ease-in-out infinite',
+                          animationTimingFunction: 'cubic-bezier(0.4, 0, 0.6, 1)'
+                        }}
+                      />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-xs">{option.investmentInsight}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {option.description}
