@@ -18,7 +18,9 @@ import { missionData } from "@/components/data/missions";
 
 export default function TimelinePage() {
   // State management
-  const [selectedEvent, setSelectedEvent] = useState<FinancialEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<FinancialEvent | null>(
+    null
+  );
   const [missionEvent, setMissionEvent] = useState<FinancialEvent | null>(null);
   const [selectedCoach, setSelectedCoach] = useState(aiCoaches[0]);
   const [gameStarted, setGameStarted] = useState(false);
@@ -35,7 +37,9 @@ export default function TimelinePage() {
   const [missionStep, setMissionStep] = useState<
     "intro" | "decision" | "result"
   >("intro");
-  const [selectedInvestment, setSelectedInvestment] = useState<string | null>(null);
+  const [selectedInvestment, setSelectedInvestment] = useState<string | null>(
+    null
+  );
   const [missionResult, setMissionResult] = useState<any>(null);
 
   const updateUnlockStatus = () => {
@@ -54,7 +58,9 @@ export default function TimelinePage() {
     });
   };
 
-  const allMissionsCompleted = financialEvents.every((event) => event.completed);
+  const allMissionsCompleted = financialEvents.every(
+    (event) => event.completed
+  );
 
   useEffect(() => {
     updateUnlockStatus();
@@ -92,10 +98,10 @@ export default function TimelinePage() {
     if (!missionEvent) return;
     const mission = missionData[missionEvent.year as keyof typeof missionData];
     const option = mission?.options.find((opt) => opt.id === optionId);
-    
+
     if (option) {
       setSelectedInvestment(optionId);
-      
+
       // Calculate coach-adjusted returns based on selected coach
       const getCoachAdjustedReturn = (
         baseReturn: number,
@@ -108,7 +114,9 @@ export default function TimelinePage() {
           "Income Coach": 0.9, // Slightly conservative, focus on stability
         };
         const factor =
-          adjustmentFactors[coachPersonality as keyof typeof adjustmentFactors] || 1.0;
+          adjustmentFactors[
+            coachPersonality as keyof typeof adjustmentFactors
+          ] || 1.0;
         // Apply adjustment with some randomness
         const randomFactor = 0.9 + Math.random() * 0.2; // 0.9 to 1.1
         const adjustedReturn = baseReturn * factor * randomFactor;
@@ -139,12 +147,12 @@ export default function TimelinePage() {
       const baseReward = missionEvent.reward;
       const performanceBonus = missionResult.performance === "profit" ? 50 : 0;
       const totalReward = baseReward + performanceBonus;
-      
+
       // Update player progress
       setPlayerXP((prev) => prev + totalReward);
       setTotalScore((prev) => prev + totalReward);
       setCompletedMissions((prev) => [...prev, missionEvent.title]);
-      
+
       // Update event completion status
       const eventIndex = financialEvents.findIndex(
         (e) => e.year === missionEvent.year
@@ -175,7 +183,7 @@ export default function TimelinePage() {
 
   const startCompetition = () => {
     // Navigate to competition page using Next.js router
-    window.location.href = '/competition';
+    window.location.href = "/competition";
   };
 
   const closeMissionModal = () => {
@@ -198,7 +206,7 @@ export default function TimelinePage() {
         totalScore={totalScore}
       />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto sm:px-4 py-8">
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar */}
           <div className="lg:col-span-1">
