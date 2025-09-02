@@ -53,12 +53,14 @@ export function InvestmentDecision({
           >
             <CardContent>
               <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <h4 className="font-semibold">{option.name}</h4>
-                  <div className="flex flex-col items-end gap-1">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold">{option.name}</h4>
                     <Badge variant={getRiskBadgeVariant(option.risk)}>
                       {option.risk} Risk
                     </Badge>
+                  </div>
+                  <div className="flex justify-start">
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <InfoIcon 
