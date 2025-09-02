@@ -9,7 +9,7 @@ from services.price_service import PriceService
 from services.email_service import EmailService
 from models import (
     PriceRequest, SimulationRequest, OptimizationRequest,
-    RebalanceRequest, YieldSimRequest, CoachRequest,
+    RebalanceRequest, YieldSimRequest, CoachRequest, CoachResponse,
     LeaderboardSubmit, LeaderboardResponse, RewardRedeemRequest, RewardRedeemResponse
 )
 from database import get_db, init_db
@@ -26,11 +26,7 @@ import yfinance as yf
 import json
 import os
 from dotenv import load_dotenv
-from typing import List
 import openai
-import os
-from typing import Dict, List, Any
-from models import CoachRequest, CoachResponse
 
 
 # Load environment variables from .env file
