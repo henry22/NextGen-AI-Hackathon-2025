@@ -6,10 +6,11 @@ from services.rebalance_service import RebalanceService
 from services.optimization_service import OptimizationService
 from services.simulation_service import SimulationService
 from services.price_service import PriceService
+from services.email_service import EmailService
 from models import (
     PriceRequest, SimulationRequest, OptimizationRequest,
     RebalanceRequest, YieldSimRequest, CoachRequest,
-    LeaderboardSubmit, LeaderboardResponse
+    LeaderboardSubmit, LeaderboardResponse, RewardRedeemRequest, RewardRedeemResponse
 )
 from database import get_db, init_db
 from fastapi import FastAPI, HTTPException, Depends, Query, Request
@@ -570,6 +571,59 @@ def _get_fallback_quotes(syms: Dict[str, str]) -> List[Dict[str, Any]]:
                 f"🔄 Fallback quote for {_id}: price={price}, change={change}%")
 
     return results
+
+
+# Initialize services
+email_service = EmailService()
+
+
+@app.post("/rewards/redeem", response_model=RewardRedeemResponse)
+async def redeem_reward(request: RewardRedeemRequest):
+    """Redeem a reward and send voucher email to user"""
+    try:
+        print(f"🎁 Processing reward redemption for {request.user_email}")
+        print(f"📦 Reward: {request.reward_name} from {request.partner}")
+        print(
+            f"💰 Cost: {request.reward_cost} XP (Player has: {request.player_xp} XP)")
+
+        # Validate XP balance
+        if request.player_xp < request.reward_cost:
+            return RewardRedeemResponse(
+                success=False,
+                message=f"Insufficient XP. You need {request.reward_cost - request.player_xp} more XP to redeem this reward.",
+                email_sent=False
+            )
+
+        # Send voucher email
+        email_result = await email_service.send_voucher_email(
+            user_email=request.user_email,
+            reward_name=request.reward_name,
+            partner=request.partner,
+            reward_description=request.reward_description
+        )
+
+        if email_result["success"]:
+            return RewardRedeemResponse(
+                success=True,
+                message=email_result["message"],
+                coupon_code=email_result["coupon_code"],
+                simulated=email_result["simulated"],
+                email_sent=True
+            )
+        else:
+            return RewardRedeemResponse(
+                success=False,
+                message=email_result["message"],
+                email_sent=False
+            )
+
+    except Exception as e:
+        print(f"❌ Error redeeming reward: {e}")
+        return RewardRedeemResponse(
+            success=False,
+            message=f"Failed to process reward redemption: {str(e)}",
+            email_sent=False
+        )
 
 
 if __name__ == "__main__":

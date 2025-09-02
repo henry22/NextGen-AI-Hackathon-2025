@@ -131,3 +131,21 @@ class CoachResponse(BaseModel):
     risk_assessment: str
     educational_insights: List[str]
     encouragement: str
+
+
+class RewardRedeemRequest(BaseModel):
+    user_email: str = Field(..., description="User's email address")
+    reward_name: str = Field(..., description="Name of the reward")
+    partner: str = Field(..., description="Partner brand name")
+    reward_description: str = Field(...,
+                                    description="Description of the reward")
+    player_xp: int = Field(..., description="Player's current XP")
+    reward_cost: int = Field(..., description="Cost of the reward in XP")
+
+
+class RewardRedeemResponse(BaseModel):
+    success: bool
+    message: str
+    coupon_code: Optional[str] = None
+    simulated: bool = False
+    email_sent: bool = False
