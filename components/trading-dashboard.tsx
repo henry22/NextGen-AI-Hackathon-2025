@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
   DollarSign,
@@ -62,7 +63,7 @@ interface TradingDashboardProps {
 const marketData = {
   apple: { price: 230.45, change: 2.3 },
   microsoft: { price: 506.46, change: 1.8 },
-  nvidia: { price: 178.10, change: 4.2 },
+  nvidia: { price: 178.1, change: 4.2 },
   tesla: { price: 346.76, change: -1.5 },
   sp500: { price: 646.33, change: 1.2 },
   etf: { price: 134.18, change: 0.8 },
@@ -94,6 +95,9 @@ export default function TradingDashboard({
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [day, setDay] = useState(1);
+
+  // Per-asset trade quantity (user input). Defaults to 1 if not set.
+  const [tradeQty, setTradeQty] = useState<Record<string, number>>({});
 
   // Current asset prices
   const [prices, setPrices] = useState<Record<string, number>>(
@@ -222,6 +226,11 @@ export default function TradingDashboard({
     });
     setPortfolio(newPortfolio);
 
+    // Default trade qty = 1 for assets we currently hold
+    setTradeQty(
+      Object.fromEntries(Object.keys(newPortfolio).map((k) => [k, 0.1]))
+    );
+
     // Initial AI greeting
     setChatMessages([
       {
@@ -231,7 +240,7 @@ export default function TradingDashboard({
         timestamp: new Date(),
       },
     ]);
-  }, [initialPortfolio, selectedCoach]);
+  }, [initialPortfolio, selectedCoach, startingCapital]);
 
   // Calculate total portfolio value
   useEffect(() => {
@@ -241,13 +250,16 @@ export default function TradingDashboard({
     const newTotalValue = portfolioValue + cash;
     setTotalValue(newTotalValue);
     setDailyReturn(((newTotalValue - startingCapital) / startingCapital) * 100);
-  }, [portfolio, cash]);
+  }, [portfolio, cash, startingCapital]);
+
+  const getLivePrice = (asset: string) =>
+    prices[asset] ?? marketData[asset as keyof typeof marketData].price;
 
   const handleBuy = (asset: string, amount: number) => {
-    const currentPrice = marketData[asset as keyof typeof marketData].price;
+    const currentPrice = getLivePrice(asset);
     const cost = amount * currentPrice;
 
-    if (cost <= cash) {
+    if (amount > 0 && cost <= cash) {
       setCash((prev) => prev - cost);
       setPortfolio((prev) => ({
         ...prev,
@@ -258,6 +270,7 @@ export default function TradingDashboard({
               avgPrice:
                 (prev[asset].shares * prev[asset].avgPrice + cost) /
                 (prev[asset].shares + amount),
+              currentPrice, // sync to the price used for this trade
             }
           : {
               shares: amount,
@@ -286,16 +299,18 @@ export default function TradingDashboard({
 
   const handleSell = (asset: string, amount: number) => {
     const holding = portfolio[asset];
-    if (holding && holding.shares >= amount) {
-      const currentPrice = marketData[asset as keyof typeof marketData].price;
-      const proceeds = amount * currentPrice;
+    if (holding && amount > 0 && holding.shares > 0) {
+      const currentPrice = getLivePrice(asset);
+      const sellAmount = Math.min(amount, holding.shares);
+      const proceeds = sellAmount * currentPrice;
 
       setCash((prev) => prev + proceeds);
       setPortfolio((prev) => ({
         ...prev,
         [asset]: {
           ...prev[asset],
-          shares: prev[asset].shares - amount,
+          shares: prev[asset].shares - sellAmount,
+          currentPrice, // sync to the price used for this trade
         },
       }));
 
@@ -306,7 +321,7 @@ export default function TradingDashboard({
           {
             id: Date.now().toString(),
             sender: "ai",
-            message: `You sold ${amount} shares of ${
+            message: `You sold ${sellAmount} shares of ${
               investmentNames[asset as keyof typeof investmentNames]
             } for $${proceeds.toFixed(
               2
@@ -572,6 +587,12 @@ export default function TradingDashboard({
                           holding.avgPrice) *
                         100;
 
+                      const qty = tradeQty[asset] ?? 1;
+
+                      const canBuy =
+                        cash >= qty * getLivePrice(asset) && qty > 0;
+                      const canSell = holding.shares > 0 && qty > 0;
+
                       return (
                         <div
                           key={asset}
@@ -605,28 +626,49 @@ export default function TradingDashboard({
                               </Badge>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+
+                          {/* Trade controls */}
+                          <div className="flex items-center gap-3">
                             <span className="font-semibold text-foreground">
                               ${currentValue.toFixed(2)}
                             </span>
-                            <div className="flex gap-1">
+                            <div className="flex items-center gap-1">
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleBuy(asset, 1)}
-                                disabled={cash < holding.currentPrice}
+                                onClick={() => handleBuy(asset, qty)}
+                                disabled={!canBuy}
                                 className="bg-primary text-primary-foreground hover:bg-primary/90"
+                                title={
+                                  !canBuy
+                                    ? "Not enough cash or invalid qty"
+                                    : "Buy"
+                                }
                               >
                                 <ShoppingCart className="h-3 w-3" />
                               </Button>
+                              <Input
+                                type="number"
+                                inputMode="decimal"
+                                min={0}
+                                step={0.1}
+                                className="w-16 bg-white text-foreground"
+                                value={Number.isFinite(qty) ? qty : 0.1}
+                                onChange={(e) => {
+                                  const v = parseFloat(e.target.value);
+                                  setTradeQty((prev) => ({
+                                    ...prev,
+                                    [asset]: isNaN(v) ? 0 : v,
+                                  }));
+                                }}
+                              />
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() =>
-                                  handleSell(asset, Math.min(1, holding.shares))
-                                }
-                                disabled={holding.shares < 1}
+                                onClick={() => handleSell(asset, qty)}
+                                disabled={!canSell}
                                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                title={!canSell ? "Invalid qty" : "Sell"}
                               >
                                 <Minus className="h-3 w-3" />
                               </Button>
