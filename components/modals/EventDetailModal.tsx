@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -9,9 +10,10 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DataCard } from "@/components/shared/DataCard";
-import { Trophy, BookOpen, Play } from "lucide-react";
+import { Trophy, BookOpen, Play, Target } from "lucide-react";
 import { FinancialEvent } from "@/components/data/events";
 import { AICoach } from "@/components/data/coaches";
+import { Badge } from "@/components/ui/badge";
 
 interface EventDetailModalProps {
   event: FinancialEvent | null;
@@ -77,18 +79,52 @@ export function EventDetailModal({
             />
           </div>
 
-          <div className="bg-muted/50 p-4 rounded-lg">
-            <h4 className="font-serif font-semibold mb-2">
-              Your AI Coach: {selectedCoach.name}
-            </h4>
-            <p className="text-sm text-muted-foreground mb-3">
-              {selectedCoach.description}
-            </p>
-            <p className="text-sm">
-              <span className="font-medium">Recommended Strategy: </span>
-              {getCoachStrategy()}
-            </p>
-          </div>
+          <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-6">
+                <div className="flex-shrink-0">
+                  <div className="relative">
+                    <Image
+                      src={selectedCoach.avatar}
+                      alt={selectedCoach.name}
+                      width={80}
+                      height={80}
+                      className="rounded-full border-4 border-primary/20 shadow-lg"
+                    />
+                    <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1">
+                      <Target className="h-3 w-3" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="mb-4">
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <h4 className="font-bold text-lg">
+                        {selectedCoach.name}
+                      </h4>
+                      <Badge className="text-primary bg-primary/10">
+                        {selectedCoach.personality}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedCoach.description}
+                    </p>
+                  </div>
+                  <div className="bg-accent/10 pl-4 pr-3 py-3 rounded-md border-l-2 border-accent/30 -ml-4">
+                    <p className="text-sm">
+                      <span className="font-semibold text-accent-foreground flex items-center gap-2 mb-1">
+                        <Target className="h-4 w-4" />
+                        Recommended Strategy:
+                      </span>
+                      <span className="text-muted-foreground">
+                        {getCoachStrategy()}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="flex gap-3">
             <Button onClick={onStartMission} className="flex-1 font-medium">
