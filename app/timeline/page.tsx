@@ -194,9 +194,7 @@ export default function TimelinePage() {
       setPlayerXP((prev) => prev - reward.cost);
       setRedeemedRewards((prev) => [...prev, reward.id]);
       // In a real app, this would trigger the actual reward delivery
-      alert(
-        `Congratulations! You've redeemed a ${reward.name}. Check your email for the voucher code!`
-      );
+      // The email and voucher code are now handled in the RedeemConfirmModal
     }
   };
 
