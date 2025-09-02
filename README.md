@@ -16,6 +16,7 @@ A gamified investment education platform that takes players on a journey through
 - **🏆 Competitive Leaderboards**: Compete with players globally
 - **📈 Advanced Analytics**: Performance charts and risk analysis
 - **🎮 Gamified Learning**: XP system, achievements, and progressive unlocking
+- **🎁 Real Rewards System**: Exchange XP for Australian brand gift cards with QR codes
 
 ## 🚀 Quick Start
 
@@ -43,6 +44,22 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 # OpenAI API Key (for AI Coach functionality)
 OPENAI_API_KEY=your_openai_api_key_here
+```
+
+Create a `.env` file in the `backend` directory for email functionality:
+
+```bash
+# Email Configuration (Optional - see backend/EMAIL_SETUP.md)
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SENDER_EMAIL=your-email@gmail.com
+SENDER_PASSWORD=your_app_password
+
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key
+
+# Debug Mode
+DEBUG=false
 ```
 
 ### 3. Install Dependencies
@@ -162,6 +179,7 @@ npm run lint         # Run ESLint
 - `POST /simulate` - Simulate investment returns
 - `POST /coach/advice` - Get AI coaching advice
 - `GET /leaderboard` - Get competition rankings
+- `POST /rewards/redeem` - Redeem XP for rewards (with email delivery)
 
 ### Environment Variables
 
@@ -169,6 +187,15 @@ npm run lint         # Run ESLint
 | --------------------- | ------------------------------ | -------- |
 | `NEXT_PUBLIC_API_URL` | Backend API URL                | Yes      |
 | `OPENAI_API_KEY`      | OpenAI API key for AI coaching | Yes      |
+
+**Backend Email Variables** (Optional - for email functionality):
+
+| Variable          | Description                        | Required |
+| ----------------- | ---------------------------------- | -------- |
+| `SMTP_SERVER`     | SMTP server (e.g., smtp.gmail.com) | No       |
+| `SMTP_PORT`       | SMTP port (usually 587)            | No       |
+| `SENDER_EMAIL`    | Email address for sending          | No       |
+| `SENDER_PASSWORD` | App password for email service     | No       |
 
 ## 🎯 Game Features
 
@@ -193,6 +220,13 @@ npm run lint         # Run ESLint
 - **Balanced Bella** (Balanced): Optimal risk-return balance
 - **Adventure Alex** (Aggressive): High returns, high risk
 - **Tech Taylor** (Tech-focused): AI and technology trends
+
+### Rewards System
+
+- **Australian Brand Partners**: JB Hi-Fi, Guzman y Gomez, Boost Juice, etc.
+- **XP Exchange**: Convert earned XP to gift cards
+- **QR Code Delivery**: Instant voucher delivery via email with scannable QR codes
+- **Mobile Optimized**: Easy redemption at partner locations
 
 ## 📊 Performance Metrics
 
