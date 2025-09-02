@@ -37,6 +37,7 @@ interface PerformanceChartProps {
   showPortfolioChart?: boolean;
   showReturnsChart?: boolean;
   showRiskAnalysis?: boolean;
+  highlightedMetric?: string | null;
 }
 
 export function PerformanceChart({
@@ -51,7 +52,29 @@ export function PerformanceChart({
   showPortfolioChart = true,
   showReturnsChart = true,
   showRiskAnalysis = true,
+  highlightedMetric = null,
 }: PerformanceChartProps) {
+  // Add animation styles
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes pulse-gradient {
+        0%, 100% { background: rgba(147, 51, 234, 0.1); }
+        50% { background: rgba(147, 51, 234, 0.2); }
+      }
+      .animate-pulse-gradient {
+        animation: pulse-gradient 2s ease-in-out infinite;
+      }
+    `;
+    if (!document.head.querySelector('style[data-pulse-gradient]')) {
+      style.setAttribute('data-pulse-gradient', 'true');
+      document.head.appendChild(style);
+    }
+    return () => {
+      const existingStyle = document.head.querySelector('style[data-pulse-gradient]');
+      if (existingStyle) document.head.removeChild(existingStyle);
+    };
+  }, []);
   const [currentYear, setCurrentYear] = useState(2024); // Default fallback
 
   useEffect(() => {
@@ -191,13 +214,13 @@ export function PerformanceChart({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Performance Metrics */}
       {showMetrics && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-2">
-              <div className="flex flex-col space-y-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <Card className={`transition-all duration-200 ${highlightedMetric === "final_value" ? "ring-2 ring-blue-400 shadow-lg scale-105 bg-blue-50" : ""}`}>
+            <CardContent className="px-2 py-1">
+              <div className="flex flex-col space-y-0.5">
                 <div className="flex items-center space-x-1">
                   <DollarSign className="h-3 w-3 text-green-600 flex-shrink-0" />
                   <p className="text-xs font-medium text-muted-foreground">
@@ -211,9 +234,9 @@ export function PerformanceChart({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-2">
-              <div className="flex flex-col space-y-1">
+          <Card className={`transition-all duration-200 ${highlightedMetric === "total_return" ? "ring-2 ring-blue-400 shadow-lg scale-105 bg-blue-50" : ""}`}>
+            <CardContent className="px-2 py-1">
+              <div className="flex flex-col space-y-0.5">
                 <div className="flex items-center space-x-1">
                   {totalReturn >= 0 ? (
                     <TrendingUp className="h-3 w-3 text-green-600 flex-shrink-0" />
@@ -235,9 +258,9 @@ export function PerformanceChart({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-2">
-              <div className="flex flex-col space-y-1">
+          <Card className={`transition-all duration-200 ${highlightedMetric === "volatility" ? "ring-2 ring-blue-400 shadow-lg scale-105 bg-blue-50" : ""}`}>
+            <CardContent className="px-2 py-1">
+              <div className="flex flex-col space-y-0.5">
                 <div className="flex items-center space-x-1">
                   <BarChart3 className="h-3 w-3 text-blue-600 flex-shrink-0" />
                   <p className="text-xs font-medium text-muted-foreground">
@@ -251,11 +274,11 @@ export function PerformanceChart({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-2">
-              <div className="flex flex-col space-y-1">
-                <div className="flex flex-col space-y-1">
-                  <div className="flex items-center">
+          <Card className={`transition-all duration-200 ${highlightedMetric === "sharpe_ratio" ? "ring-2 ring-blue-400 shadow-lg scale-105 bg-blue-50" : ""}`}>
+            <CardContent className="px-2 py-1">
+              <div className="flex flex-col space-y-0.5">
+                <div className="flex flex-col space-y-0.5">
+                  <div className="flex items-center justify-center">
                     <Badge
                       variant={
                         sharpeRatio > 1
@@ -264,7 +287,7 @@ export function PerformanceChart({
                           ? "secondary"
                           : "destructive"
                       }
-                      className="text-xs px-2 py-0"
+                      className="text-xs px-1.5 py-0"
                     >
                       Sharpe
                     </Badge>
@@ -286,7 +309,7 @@ export function PerformanceChart({
 
       {/* Portfolio Value Chart */}
       {showPortfolioChart && (
-        <Card>
+        <Card className={`transition-all duration-200 ${highlightedMetric === "portfolio_chart" ? "ring-2 ring-purple-400 shadow-lg scale-105 animate-pulse-gradient" : ""}`}>
           <CardHeader>
             <CardTitle>Portfolio Performance (Annual)</CardTitle>
             <CardDescription>
@@ -294,7 +317,7 @@ export function PerformanceChart({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={240}>
               <AreaChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
@@ -329,7 +352,7 @@ export function PerformanceChart({
 
       {/* Returns Chart */}
       {showReturnsChart && (
-        <Card>
+        <Card className={`transition-all duration-200 ${highlightedMetric === "portfolio_chart" ? "ring-2 ring-purple-400 shadow-lg scale-105 animate-pulse-gradient" : ""}`}>
           <CardHeader>
             <CardTitle>Annual Returns</CardTitle>
             <CardDescription>
@@ -337,7 +360,7 @@ export function PerformanceChart({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={160}>
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
@@ -371,7 +394,7 @@ export function PerformanceChart({
 
       {/* Risk Metrics */}
       {showRiskAnalysis && (
-        <Card>
+        <Card className={`transition-all duration-200 ${highlightedMetric === "portfolio_chart" ? "ring-2 ring-purple-400 shadow-lg scale-105 animate-pulse-gradient" : ""}`}>
           <CardHeader>
             <CardTitle>Risk Analysis</CardTitle>
             <CardDescription>
