@@ -147,13 +147,13 @@ export default function TimelinePage() {
 
   const completeMission = () => {
     if (missionEvent && missionResult) {
-      const baseReward = missionEvent.reward;
-      const performanceBonus = missionResult.performance === "profit" ? 50 : 0;
-      const totalReward = baseReward + performanceBonus;
+      // Only give the exact base mission reward - no performance bonus
+      // Button interaction XP is already being added in real-time via handleXpEarned
+      const missionReward = missionEvent.reward; // Use exact reward value: 100, 150, 200
 
-      // Update player progress
-      setPlayerXP((prev) => prev + totalReward);
-      setTotalScore((prev) => prev + totalReward);
+      // Update player progress with just the mission base reward
+      setPlayerXP((prev) => prev + missionReward);
+      setTotalScore((prev) => prev + missionReward);
       setCompletedMissions((prev) => [...prev, missionEvent.title]);
 
       // Update event completion status
@@ -167,7 +167,7 @@ export default function TimelinePage() {
       }
 
       // Level up logic
-      const newLevel = Math.floor((playerXP + totalReward) / 1000) + 1;
+      const newLevel = Math.floor((playerXP + missionReward) / 1000) + 1;
       if (newLevel > playerLevel) {
         setPlayerLevel(newLevel);
       }
@@ -196,6 +196,12 @@ export default function TimelinePage() {
       // In a real app, this would trigger the actual reward delivery
       // The email and voucher code are now handled in the RedeemConfirmModal
     }
+  };
+
+  // Real-time XP callback for button interactions
+  const handleXpEarned = (amount: number) => {
+    setPlayerXP((prev) => prev + amount);
+    setTotalScore((prev) => prev + amount);
   };
 
   const closeMissionModal = () => {
@@ -275,6 +281,7 @@ export default function TimelinePage() {
         onInvestmentSelect={setSelectedInvestment}
         onInvestmentConfirm={makeInvestment}
         onMissionComplete={completeMission}
+        onXpEarned={handleXpEarned}
       />
 
       {/* Summary Modal */}

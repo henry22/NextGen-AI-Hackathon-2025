@@ -16,6 +16,7 @@ interface MissionResultProps {
   completedMissions: string[];
   selectedCoach: AICoach; // Add selectedCoach prop
   onComplete: () => void;
+  onXpEarned?: (amount: number) => void;
 }
 
 export function MissionResult({
@@ -30,6 +31,7 @@ export function MissionResult({
   completedMissions,
   selectedCoach, // Add selectedCoach parameter
   onComplete,
+  onXpEarned,
 }: MissionResultProps) {
   return (
     <div className="space-y-6">
@@ -45,6 +47,7 @@ export function MissionResult({
           event={event}
           simulationResult={simulationResult}
           onComplete={onComplete}
+          onXpEarned={onXpEarned}
         />
       </div>
     </div>

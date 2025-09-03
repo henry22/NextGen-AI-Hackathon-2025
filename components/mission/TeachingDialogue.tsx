@@ -15,6 +15,9 @@ import {
   HelpCircle,
   Target,
   Zap,
+  Activity,
+  TrendingDown,
+  AlertTriangle,
 } from "lucide-react";
 import { PerformanceChart } from "@/components/PerformanceChart";
 import { api, InvestmentMetrics, CoachRequest, CoachResponse } from "@/lib/api";
@@ -725,15 +728,71 @@ export function TeachingDialogue({
     });
 
     // Step 4: Summary and Completion with detailed recommendations
+    const fallbackRecommendations = [
+      "Rebalance your portfolio regularly",
+      "Consider adding more growth assets if your risk tolerance allows", 
+      "Learn about market cycles and economic indicators"
+    ];
+    
+    const fallbackNextSteps = [
+      "Try the portfolio optimization feature",
+      "Experiment with different rebalancing strategies"
+    ];
+    
+    const fallbackEncouragement = "You're becoming a confident investor! Keep exploring and learning. Ready for your next challenge?";
+    
+    const recommendations = aiCoachAdvice.recommendations && aiCoachAdvice.recommendations.length > 0 
+      ? aiCoachAdvice.recommendations.slice(0, 3) 
+      : fallbackRecommendations;
+      
+    const nextSteps = aiCoachAdvice.next_steps && aiCoachAdvice.next_steps.length > 0
+      ? aiCoachAdvice.next_steps.slice(0, 2)
+      : fallbackNextSteps;
+      
+    const encouragement = aiCoachAdvice.encouragement || fallbackEncouragement;
+    
+    // Generate intelligent summary based on mission results
+    const generateIntelligentSummary = (): string => {
+      const actualFinalValue = realMetrics ? realMetrics.final_value : finalAmount;
+      const actualTotalReturn = realMetrics ? realMetrics.total_return : actualReturn;
+      const actualVolatility = realMetrics ? realMetrics.volatility : 16.26;
+      const actualSharpe = realMetrics ? realMetrics.sharpe_ratio : 0.1;
+      
+      // Performance analysis
+      const performanceLevel = actualTotalReturn > 15 ? "exceptional" : actualTotalReturn > 5 ? "solid" : actualTotalReturn > 0 ? "modest" : "challenging";
+      const riskLevel = actualVolatility > 25 ? "high" : actualVolatility > 15 ? "moderate" : "low";
+      
+      // Mission-specific insights
+      let missionContext = "";
+      if (event.title.toLowerCase().includes("bubble")) {
+        missionContext = actualTotalReturn > 0 ? 
+          "You successfully navigated the market bubble by staying disciplined during volatile times." :
+          "Market bubbles are notoriously difficult to time - this experience teaches valuable lessons about market psychology.";
+      } else if (event.title.toLowerCase().includes("crisis")) {
+        missionContext = actualTotalReturn > 0 ?
+          "Impressive! You found opportunity during the crisis when many investors were paralyzed by fear." :
+          "Financial crises test every investor - your experience here builds resilience for future market downturns.";
+      } else {
+        missionContext = actualTotalReturn > 0 ?
+          "Your investment approach worked well for this market environment." :
+          "This challenging period provided valuable learning about market dynamics.";
+      }
+      
+      return `🎯 **Mission Summary: ${event.title}** 🎯\n\nYour ${selectedOption.name} investment generated ${performanceLevel} results with a **${actualTotalReturn.toFixed(2)}%** return, ending at **$${Math.round(actualFinalValue).toLocaleString()}**. ${missionContext}\n\n**📊 Performance Analysis:**\n• **Risk Profile**: ${riskLevel} volatility (${actualVolatility.toFixed(1)}%)\n• **Risk-Adjusted Return**: ${actualSharpe > 1 ? "Excellent" : actualSharpe > 0.5 ? "Good" : "Needs improvement"} (Sharpe: ${actualSharpe.toFixed(2)})\n\n**🎓 My Key Recommendations:**\n${recommendations.map(rec => `• ${rec}`).join('\n')}\n\n**🚀 Next Steps:**\n${nextSteps.map(step => `• ${step}`).join('\n')}\n\n**💪 ${encouragement}**`;
+    };
+    
+    const intelligentSummary = generateIntelligentSummary();
+    
     newMessages.push({
       id: "summary_completion",
       type: "completion",
-      content: `🎉 **Mission Complete!** 🎉\n\n**My Key Recommendations:**\n${aiCoachAdvice.recommendations.slice(0, 3).map(rec => `• ${rec}`).join('\n')}\n\n**Next Steps:**\n${aiCoachAdvice.next_steps.slice(0, 2).map(step => `• ${step}`).join('\n')}\n\n${aiCoachAdvice.encouragement}`,
+      content: intelligentSummary,
       showComplete: true,
       showMetrics: false,
       showChart: false,
       showReturnsChart: false,
       showAnalysis: false,
+      // No metricButtons - this step should not have interactive buttons
     });
 
     setMessages(newMessages);
@@ -828,6 +887,13 @@ export function TeachingDialogue({
   const handleContinue = () => {
     if (currentMessageIndex < messages.length - 1) {
       setCurrentMessageIndex(currentMessageIndex + 1);
+      // Clear button selection state when moving to next step
+      setSelectedMetric(null);
+      setMetricExplanation("");
+      setCoachTypingText("");
+      setIsCoachTyping(false);
+      // Clear chart highlighting as well
+      setHoveredMetric(null);
     }
   };
 
@@ -843,6 +909,8 @@ export function TeachingDialogue({
       setMetricExplanation("");
       setCoachTypingText("");
       setIsCoachTyping(false);
+      // Clear chart highlighting as well
+      setHoveredMetric(null);
     }
   };
 
@@ -925,43 +993,56 @@ export function TeachingDialogue({
   const generateMetricExplanation = async (metricKey: string, targetMetric: string): Promise<string> => {
     if (!aiCoachAdvice) return "Loading explanation...";
     
-    const metricValue = getMetricValue(targetMetric);
+    // Use actual data from props and realMetrics
+    const actualFinalValue = realMetrics ? realMetrics.final_value : finalAmount;
+    const actualTotalReturn = realMetrics ? realMetrics.total_return : actualReturn;
+    const actualVolatility = realMetrics ? realMetrics.volatility : 16.26;
+    const actualSharpe = realMetrics ? realMetrics.sharpe_ratio : 0.1;
     
     switch (metricKey) {
       case "final_value":
-        return `Your final investment value is $${Math.round(finalAmount).toLocaleString()}. ${performance === "profit" ? 
-          `Congratulations! Your investment grew by ${actualReturn.toFixed(2)}%. ${aiCoachAdvice.encouragement}` : 
-          `Though your investment declined by ${Math.abs(actualReturn).toFixed(2)}%, this is valuable learning experience. ${aiCoachAdvice.recommendations[0] || "Remember, investing is a long-term game."}`}`;
+        return `Your final investment value is $${Math.round(actualFinalValue).toLocaleString()}. ${actualTotalReturn > 0 ? 
+          `Congratulations! Your investment grew by ${actualTotalReturn.toFixed(2)}%. ${aiCoachAdvice.encouragement || "Great job on this investment!"}` : 
+          `Though your investment declined by ${Math.abs(actualTotalReturn).toFixed(2)}%, this is valuable learning experience. ${aiCoachAdvice.recommendations?.[0] || "Remember, investing is a long-term game and losses help us learn."}`}`;
         
       case "total_return":
-        return `Your total return is ${actualReturn.toFixed(2)}%. This is a ${Math.abs(actualReturn) > 20 ? 
-          "significant" : "moderate"} ${performance === "profit" ? "gain" : "loss"}. ${aiCoachAdvice.risk_assessment} ${aiCoachAdvice.recommendations[1] || ""}`;
+        return `Your total return is ${actualTotalReturn.toFixed(2)}%. This is a ${Math.abs(actualTotalReturn) > 20 ? 
+          "significant" : "moderate"} ${actualTotalReturn > 0 ? "gain" : "loss"}. ${aiCoachAdvice.risk_assessment || "Market conditions played a role in this outcome."} ${aiCoachAdvice.recommendations?.[1] || "Understanding returns helps you make better future decisions."}`;
         
       case "volatility":
-        const volatility = realMetrics ? realMetrics.volatility : 16.26;
-        return `Volatility is ${volatility.toFixed(2)}%, showing your investment's price movement range. ${volatility > 20 ? 
-          "This is high volatility, meaning greater risk and potential returns." : "This is relatively stable investment."} ${aiCoachAdvice.recommendations[2] || "Balancing risk and return is key."}`;
+        return `Volatility is ${actualVolatility.toFixed(2)}%, showing your investment's price movement range. ${actualVolatility > 20 ? 
+          "This is high volatility, meaning greater risk and potential returns." : "This is relatively stable, indicating lower risk but potentially lower returns too."} ${aiCoachAdvice.recommendations?.[2] || "Balancing risk and return is key to successful investing."}`;
         
       case "sharpe_ratio":
-        const sharpe = realMetrics ? realMetrics.sharpe_ratio : 0.1;
-        return `Sharpe ratio is ${sharpe.toFixed(2)}, measuring risk-adjusted returns. ${sharpe > 1 ? 
-          "Excellent risk-adjusted performance!" : sharpe > 0 ? "Reasonable risk-return balance." : "Consider reviewing your risk-return ratio."} ${aiCoachAdvice.next_steps[0] || ""}`;
+        return `Sharpe ratio is ${actualSharpe.toFixed(2)}, measuring risk-adjusted returns. ${actualSharpe > 1 ? 
+          "Excellent risk-adjusted performance!" : actualSharpe > 0 ? "Reasonable risk-return balance." : "This suggests the return may not have justified the risk taken."} ${aiCoachAdvice.next_steps?.[0] || "Focus on risk-adjusted returns for better investment decisions."}`;
         
       case "portfolio_chart":
-        return `This chart shows your investment journey over time. ${performance === "profit" ? 
-          `You can see how your portfolio grew from the initial investment to $${Math.round(finalAmount).toLocaleString()}.` : 
-          `The chart reveals the challenges during ${event.title}, helping you understand market timing impacts.`} ${aiCoachAdvice.recommendations[0] || "Track your performance by year to spot trends and patterns."}`;
+        let chartExplanation = "";
+        if (currentMessage.id === "portfolio_performance") {
+          chartExplanation = `This chart shows how your $100,000 investment in ${selectedOption.name} performed over time, ending at $${Math.round(actualFinalValue).toLocaleString()}. `;
+        } else if (currentMessage.id === "annual_returns") {
+          chartExplanation = `This annual returns chart reveals the year-by-year performance patterns of your ${selectedOption.name} investment during ${event.title}. `;
+        } else if (currentMessage.id === "risk_analysis") {
+          chartExplanation = `The risk analysis shows your investment's volatility (${actualVolatility.toFixed(1)}%) and maximum drawdown, helping you understand the ups and downs you experienced. `;
+        }
+        
+        chartExplanation += actualTotalReturn > 0 ? 
+          `The overall upward trend demonstrates how markets can reward patient investors even during challenging periods.` : 
+          `While the outcome was negative, understanding these patterns helps you make more informed decisions in similar future scenarios.`;
+        
+        return chartExplanation + ` ${aiCoachAdvice.recommendations?.[0] || "Track your performance by year to spot trends and patterns."}`;
         
       default:
-        return aiCoachAdvice.advice;
+        return aiCoachAdvice.advice || "Let me know if you have any questions about your investment performance!";
     }
   };
 
   // Get metric value helper
   const getMetricValue = (targetMetric: string) => {
     switch (targetMetric) {
-      case "final_value": return finalAmount;
-      case "total_return": return actualReturn;
+      case "final_value": return realMetrics ? realMetrics.final_value : finalAmount;
+      case "total_return": return realMetrics ? realMetrics.total_return : actualReturn;
       case "volatility": return realMetrics ? realMetrics.volatility : 16.26;
       case "sharpe_ratio": return realMetrics ? realMetrics.sharpe_ratio : 0.1;
       default: return 0;
@@ -1068,10 +1149,6 @@ export function TeachingDialogue({
 
   const currentMessage = messages[currentMessageIndex];
   if (!currentMessage) return null;
-  const extraMetricButton =
-    currentMessage.metricButtons && currentMessage.metricButtons.length > 4
-      ? currentMessage.metricButtons[4]
-      : undefined;
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
@@ -1105,15 +1182,15 @@ export function TeachingDialogue({
         </div>
       </div>
 
-      {/* Coach Explanation in Chat Bubble - Simplified */}
-      {selectedMetric && (isCoachTyping || metricExplanation) && (
-        <div className="mb-4 relative">
-          <div className="bg-white border-2 border-blue-200 rounded-2xl p-4 shadow-sm relative animate-in slide-in-from-bottom-2 duration-300">
-            {/* Chat bubble pointer pointing to coach header */}
-            <div className="absolute -top-2 left-20 w-4 h-4 bg-white border-l-2 border-t-2 border-blue-200 transform rotate-45"></div>
-            
-            {/* Simplified content - no redundant coach info */}
-            <div className="text-sm text-gray-700 leading-relaxed">
+      {/* Coach Interaction Panel - Always Visible */}
+      <div className="mb-4 relative">
+        <div className="bg-white border-2 border-blue-200 rounded-2xl p-4 shadow-sm relative">
+          {/* Chat bubble pointer pointing to coach header */}
+          <div className="absolute -top-2 left-20 w-4 h-4 bg-white border-l-2 border-t-2 border-blue-200 transform rotate-45"></div>
+          
+          {/* Coach response area */}
+          {selectedMetric && (isCoachTyping || metricExplanation) ? (
+            <div className="text-sm text-gray-700 leading-relaxed mb-4">
               {isCoachTyping ? (
                 <>
                   {coachTypingText}
@@ -1123,138 +1200,144 @@ export function TeachingDialogue({
                 metricExplanation
               )}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Interactive Metric Buttons with merged prompt */}
-      {currentMessage.metricButtons && (
-        <div className="mb-4 pt-4 border-t border-blue-200 relative">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-gray-600">💡 Ask {coach.name} about your results:</p>
-            
-            {/* XP Animation - Absolute positioned for stability */}
-            {showXpAnimation && (
-              <div className="absolute top-0 right-0 z-10">
-                <div className="text-yellow-600 font-bold text-lg animate-bounce-slide-up">
-                  +5 XP
-                </div>
-                {/* Sparkle effects */}
-                <div className="absolute -inset-4 pointer-events-none">
-                  <div className="absolute top-0 left-0 w-2 h-2 text-yellow-400 animate-sparkle-1">✨</div>
-                  <div className="absolute top-1 right-0 w-2 h-2 text-yellow-300 animate-sparkle-2">⭐</div>
-                  <div className="absolute -top-1 left-3 w-2 h-2 text-amber-400 animate-sparkle-3">✦</div>
-                  <div className="absolute bottom-0 left-1 w-2 h-2 text-yellow-500 animate-sparkle-4">✨</div>
-                  <div className="absolute bottom-1 right-2 w-2 h-2 text-amber-300 animate-sparkle-5">⭐</div>
-                </div>
-              </div>
-            )}
-          </div>
+          ) : currentMessage.id === "summary_completion" ? (
+            <div className="text-sm text-gray-700 leading-relaxed mb-4 prose prose-sm">
+              <div dangerouslySetInnerHTML={{ __html: currentMessage.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') }} />
+            </div>
+          ) : (
+            <div className="text-sm text-gray-600 mb-4">
+              💡 <span className="font-medium">Ask {coach.name} about your results:</span> Click any button below to get detailed explanations!
+            </div>
+          )}
           
-          {/* Metric buttons - first row (4 buttons) - Cloud bubble style */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-            {currentMessage.metricButtons.slice(0, 4).map((button) => {
-              const isViewed = viewedSharedButtons.has(button.key);
-              return (
-                <button
-                  key={button.key}
-                  className={`relative px-4 py-2 min-h-[50px] rounded-2xl border transition-all duration-200 ${
-                    hoveredMetric === button.key ? "shadow-md scale-105" : ""
-                  } ${
-                    selectedMetric === button.key
-                      ? "bg-gradient-to-r from-indigo-400 to-purple-500 text-white border-indigo-500 shadow-lg"
-                      : isViewed
-                      ? "bg-gradient-to-r from-green-50 to-emerald-50 text-emerald-700 border-emerald-200 hover:from-green-100 hover:to-emerald-100"
-                      : "bg-gradient-to-r from-sky-50 to-blue-50 text-blue-700 border-blue-200 hover:from-sky-100 hover:to-blue-100"
-                  } ${isCoachTyping ? "opacity-50 cursor-not-allowed" : ""}`}
-                  onClick={() => !isCoachTyping && handleMetricClick(button.key, button.targetMetric)}
-                  onMouseEnter={() => !isCoachTyping && handleMetricHover(button.key)}
-                  onMouseLeave={() => !isCoachTyping && handleMetricHover(null)}
-                  disabled={isCoachTyping}
-                >
-                  {/* Cloud bubble pointer */}
-                  <div className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-3 h-3 rotate-45 ${
-                    selectedMetric === button.key
-                      ? "bg-gradient-to-r from-indigo-400 to-purple-500 border-r border-b border-indigo-500"
-                      : isViewed
-                      ? "bg-gradient-to-r from-green-50 to-emerald-50 border-r border-b border-emerald-200"
-                      : "bg-gradient-to-r from-sky-50 to-blue-50 border-r border-b border-blue-200"
-                  }`}></div>
-                  
-                  <div className="flex items-center gap-2 justify-center">
-                    {React.cloneElement(button.icon, {
-                      className: `h-4 w-4 ${
-                        selectedMetric === button.key
-                          ? "text-white"
-                          : isViewed
-                          ? "text-emerald-600"
-                          : "text-blue-600"
-                      }`,
-                    })}
-                    <span className="text-xs font-medium">{button.label}</span>
-                    {isViewed && <span className="text-xs">✓</span>}
+          {/* Interactive Buttons - Now inside chat bubble */}
+          {currentMessage.metricButtons && (
+            <div className="relative">
+              {/* XP Animation - Absolute positioned for stability */}
+              {showXpAnimation && (
+                <div className="absolute -top-2 right-0 z-10">
+                  <div className="text-yellow-600 font-bold text-lg animate-bounce-slide-up">
+                    +5 XP
                   </div>
-                </button>
-              );
-            })}
-          </div>
-          
-          {/* Chart-specific button - second row - Cloud bubble style */}
-          {extraMetricButton && (
-            <div className="flex justify-center mb-3">
-              {(() => {
-                const stepSpecificKey = `${extraMetricButton.key}_${currentMessage.id}`;
-                const isViewed = viewedStepButtons.has(stepSpecificKey);
-                return (
-                  <button
-                    key={extraMetricButton.key}
-                    className={`relative px-6 py-3 min-h-[50px] rounded-2xl border transition-all duration-200 ${
-                      hoveredMetric === extraMetricButton.key ? "shadow-md scale-105" : ""
-                    } ${
-                      selectedMetric === extraMetricButton.key
-                        ? "bg-gradient-to-r from-purple-400 to-pink-500 text-white border-purple-500 shadow-lg"
-                        : isViewed
-                        ? "bg-gradient-to-r from-green-50 to-emerald-50 text-emerald-700 border-emerald-200 hover:from-green-100 hover:to-emerald-100"
-                        : "bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 border-purple-200 hover:from-purple-100 hover:to-pink-100"
-                    } ${isCoachTyping ? "opacity-50 cursor-not-allowed" : ""}`}
-                    onClick={() => !isCoachTyping && handleMetricClick(extraMetricButton.key, extraMetricButton.targetMetric)}
-                    onMouseEnter={() => !isCoachTyping && handleMetricHover(extraMetricButton.key)}
-                    onMouseLeave={() => !isCoachTyping && handleMetricHover(null)}
-                    disabled={isCoachTyping}
-                  >
-                    {/* Cloud bubble pointer */}
-                    <div className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-3 h-3 rotate-45 ${
-                      selectedMetric === extraMetricButton.key
-                        ? "bg-gradient-to-r from-purple-400 to-pink-500 border-r border-b border-purple-500"
-                        : isViewed
-                        ? "bg-gradient-to-r from-green-50 to-emerald-50 border-r border-b border-emerald-200"
-                        : "bg-gradient-to-r from-purple-50 to-pink-50 border-r border-b border-purple-200"
-                    }`}></div>
-                    
-                    <div className="flex items-center gap-2 justify-center">
-                      {React.cloneElement(extraMetricButton.icon, {
-                        className: `h-4 w-4 ${
+                  {/* Sparkle effects */}
+                  <div className="absolute -inset-4 pointer-events-none">
+                    <div className="absolute top-0 left-0 w-2 h-2 text-yellow-400 animate-sparkle-1">✨</div>
+                    <div className="absolute top-1 right-0 w-2 h-2 text-yellow-300 animate-sparkle-2">⭐</div>
+                    <div className="absolute -top-1 left-3 w-2 h-2 text-amber-400 animate-sparkle-3">✦</div>
+                    <div className="absolute bottom-0 left-1 w-2 h-2 text-yellow-500 animate-sparkle-4">✨</div>
+                    <div className="absolute bottom-1 right-2 w-2 h-2 text-amber-300 animate-sparkle-5">⭐</div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Metric buttons - first row (4 buttons) - Cloud bubble style */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-2">
+                {currentMessage.metricButtons.slice(0, 4).map((button) => {
+                  const isViewed = viewedSharedButtons.has(button.key);
+                  return (
+                    <button
+                      key={button.key}
+                      className={`relative px-3 py-2 min-h-[45px] rounded-xl border transition-all duration-200 ${
+                        hoveredMetric === button.key ? "shadow-md scale-105" : ""
+                      } ${
+                        selectedMetric === button.key
+                          ? "bg-gradient-to-r from-indigo-400 to-purple-500 text-white border-indigo-500 shadow-lg"
+                          : isViewed
+                          ? "bg-gradient-to-r from-green-50 to-emerald-50 text-emerald-700 border-emerald-200 hover:from-green-100 hover:to-emerald-100"
+                          : "bg-gradient-to-r from-sky-50 to-blue-50 text-blue-700 border-blue-200 hover:from-sky-100 hover:to-blue-100"
+                      } ${isCoachTyping ? "opacity-50 cursor-not-allowed" : ""}`}
+                      onClick={() => !isCoachTyping && handleMetricClick(button.key, button.targetMetric)}
+                      onMouseEnter={() => !isCoachTyping && handleMetricHover(button.key)}
+                      onMouseLeave={() => !isCoachTyping && handleMetricHover(null)}
+                      disabled={isCoachTyping}
+                    >
+                      {/* Cloud bubble pointer */}
+                      <div className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 rotate-45 ${
+                        selectedMetric === button.key
+                          ? "bg-gradient-to-r from-indigo-400 to-purple-500 border-r border-b border-indigo-500"
+                          : isViewed
+                          ? "bg-gradient-to-r from-green-50 to-emerald-50 border-r border-b border-emerald-200"
+                          : "bg-gradient-to-r from-sky-50 to-blue-50 border-r border-b border-blue-200"
+                      }`}></div>
+                      
+                      <div className="flex items-center gap-1 justify-center">
+                        {React.cloneElement(button.icon, {
+                          className: `h-3 w-3 ${
+                            selectedMetric === button.key
+                              ? "text-white"
+                              : isViewed
+                              ? "text-emerald-600"
+                              : "text-blue-600"
+                          }`,
+                        })}
+                        <span className="text-xs font-medium">{button.label}</span>
+                        {isViewed && <span className="text-xs">✓</span>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              
+              {/* Chart-specific button - second row */}
+              {currentMessage.metricButtons.length > 4 && (
+                <div className="flex justify-center">
+                  {(() => {
+                    const extraMetricButton = currentMessage.metricButtons[4];
+                    const stepSpecificKey = `${extraMetricButton.key}_${currentMessage.id}`;
+                    const isViewed = viewedStepButtons.has(stepSpecificKey);
+                    return (
+                      <button
+                        key={extraMetricButton.key}
+                        className={`relative px-4 py-2 min-h-[45px] rounded-xl border transition-all duration-200 ${
+                          hoveredMetric === extraMetricButton.key ? "shadow-md scale-105" : ""
+                        } ${
                           selectedMetric === extraMetricButton.key
-                            ? "text-white"
+                            ? "bg-gradient-to-r from-purple-400 to-pink-500 text-white border-purple-500 shadow-lg"
                             : isViewed
-                            ? "text-emerald-600"
-                            : "text-purple-600"
-                        }`,
-                      })}
-                      <span className="text-xs font-medium">
-                        {currentMessage.id === "portfolio_performance" && "Portfolio Performance (Annual)"}
-                        {currentMessage.id === "annual_returns" && "Annual Returns Chart"}
-                        {currentMessage.id === "risk_completion" && "Risk Analysis Chart"}
-                      </span>
-                      {isViewed && <span className="text-xs">✓</span>}
-                    </div>
-                  </button>
-                );
-              })()}
+                            ? "bg-gradient-to-r from-green-50 to-emerald-50 text-emerald-700 border-emerald-200 hover:from-green-100 hover:to-emerald-100"
+                            : "bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700 border-purple-200 hover:from-purple-100 hover:to-pink-100"
+                        } ${isCoachTyping ? "opacity-50 cursor-not-allowed" : ""}`}
+                        onClick={() => !isCoachTyping && handleMetricClick(extraMetricButton.key, extraMetricButton.targetMetric)}
+                        onMouseEnter={() => !isCoachTyping && handleMetricHover(extraMetricButton.key)}
+                        onMouseLeave={() => !isCoachTyping && handleMetricHover(null)}
+                        disabled={isCoachTyping}
+                      >
+                        {/* Cloud bubble pointer */}
+                        <div className={`absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 rotate-45 ${
+                          selectedMetric === extraMetricButton.key
+                            ? "bg-gradient-to-r from-purple-400 to-pink-500 border-r border-b border-purple-500"
+                            : isViewed
+                            ? "bg-gradient-to-r from-green-50 to-emerald-50 border-r border-b border-emerald-200"
+                            : "bg-gradient-to-r from-purple-50 to-pink-50 border-r border-b border-purple-200"
+                        }`}></div>
+                        
+                        <div className="flex items-center gap-2 justify-center">
+                          {React.cloneElement(extraMetricButton.icon, {
+                            className: `h-3 w-3 ${
+                              selectedMetric === extraMetricButton.key
+                                ? "text-white"
+                                : isViewed
+                                ? "text-emerald-600"
+                                : "text-purple-600"
+                            }`,
+                          })}
+                          <span className="text-xs font-medium">
+                            {currentMessage.id === "portfolio_performance" && "Portfolio Performance (Annual)"}
+                            {currentMessage.id === "annual_returns" && "Annual Returns Chart"}
+                            {currentMessage.id === "risk_analysis" && "Risk Analysis Chart"}
+                          </span>
+                          {isViewed && <span className="text-xs">✓</span>}
+                        </div>
+                      </button>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
+      </div>
+
 
       {/* Key Metrics Display - REMOVED, now handled by PerformanceChart */}
       {/* Performance Chart - Show progressively */}

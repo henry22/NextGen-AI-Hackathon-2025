@@ -37,6 +37,7 @@ interface MissionModalProps {
   onInvestmentSelect: (optionId: string) => void;
   onInvestmentConfirm: (optionId: string) => void;
   onMissionComplete: () => void;
+  onXpEarned?: (amount: number) => void;
 }
 
 export function MissionModal({
@@ -55,6 +56,7 @@ export function MissionModal({
   onInvestmentSelect,
   onInvestmentConfirm,
   onMissionComplete,
+  onXpEarned,
 }: MissionModalProps) {
   if (!event || !missionData) return null;
 
@@ -137,6 +139,7 @@ export function MissionModal({
             completedMissions={completedMissions}
             selectedCoach={selectedCoach} // Pass the selected coach
             onComplete={onMissionComplete}
+            onXpEarned={onXpEarned}
           />
         )}
       </DialogContent>
