@@ -129,32 +129,32 @@ export function RewardsModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         {redeemMode === "list" && (
           <>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-2xl">
-                <Gift className="h-6 w-6 text-yellow-600" />
+              <DialogTitle className="flex items-center gap-2 text-xl sm:text-2xl">
+                <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
                 Rewards Store
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-sm">
                 Exchange your XP for amazing rewards from our partner brands!
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
               {/* Current XP Display */}
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg border">
-                <div className="flex items-center justify-between">
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 p-3 sm:p-4 rounded-lg border">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
                     <p className="text-sm text-muted-foreground">
                       Your Available XP
                     </p>
-                    <p className="text-2xl font-bold text-primary">
+                    <p className="text-xl sm:text-2xl font-bold text-primary">
                       {playerXP} XP
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <p className="text-sm text-muted-foreground">
                       Rewards Redeemed
                     </p>
@@ -174,18 +174,18 @@ export function RewardsModal({
                       isRedeemed(reward.id) ? "opacity-60" : ""
                     }`}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                         {/* Icon */}
-                        <div className="text-4xl flex-shrink-0">
+                        <div className="text-3xl sm:text-4xl flex-shrink-0">
                           {reward.image}
                         </div>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <h3 className="font-semibold text-lg">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-2 gap-2">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-base sm:text-lg">
                                 {reward.name}
                               </h3>
                               <p className="text-xs text-muted-foreground">
@@ -196,7 +196,7 @@ export function RewardsModal({
                               variant={
                                 canAfford(reward.cost) ? "default" : "secondary"
                               }
-                              className="ml-2"
+                              className="self-start sm:ml-2"
                             >
                               {reward.cost} XP
                             </Badge>
@@ -207,7 +207,7 @@ export function RewardsModal({
                         </div>
 
                         {/* Action Button */}
-                        <div className="flex-shrink-0">
+                        <div className="flex-shrink-0 w-full sm:w-auto">
                           <Button
                             onClick={() => handleRedeemClick(reward)}
                             disabled={
@@ -217,6 +217,7 @@ export function RewardsModal({
                               isRedeemed(reward.id) ? "outline" : "default"
                             }
                             size="sm"
+                            className="w-full sm:w-auto"
                           >
                             {isRedeemed(reward.id) ? (
                               <>
@@ -275,22 +276,26 @@ export function RewardsModal({
         {redeemMode === "redeem" && selectedReward && (
           <>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Gift className="h-5 w-5 text-yellow-600" />
+              <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <Gift className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />
                 Redeem Reward
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-sm">
                 Enter your email to receive your {selectedReward.name}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
               <Card className="bg-muted/30">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="text-3xl">{selectedReward.image}</div>
-                    <div>
-                      <h3 className="font-semibold">{selectedReward.name}</h3>
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex flex-col sm:flex-row items-start gap-3">
+                    <div className="text-2xl sm:text-3xl">
+                      {selectedReward.image}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-base sm:text-lg">
+                        {selectedReward.name}
+                      </h3>
                       <p className="text-sm text-muted-foreground">
                         {selectedReward.description}
                       </p>
@@ -331,7 +336,7 @@ export function RewardsModal({
                 )}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   onClick={handleConfirmRedeem}
                   disabled={
@@ -362,11 +367,11 @@ export function RewardsModal({
         {redeemMode === "success" && selectedReward && (
           <>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-green-600">
-                <CheckCircle className="h-5 w-5" />
+              <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl text-green-600">
+                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
                 Reward Redeemed!
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-sm">
                 Your voucher has been sent to your email
               </DialogDescription>
             </DialogHeader>
@@ -421,7 +426,7 @@ export function RewardsModal({
                 </ul>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button onClick={handleBackToList} className="flex-1">
                   Back to Rewards
                 </Button>

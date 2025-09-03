@@ -56,7 +56,7 @@ export function PerformanceChart({
 }: PerformanceChartProps) {
   // Add animation styles
   useEffect(() => {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       @keyframes pulse-gradient {
         0%, 100% { background: rgba(147, 51, 234, 0.1); }
@@ -66,12 +66,14 @@ export function PerformanceChart({
         animation: pulse-gradient 2s ease-in-out infinite;
       }
     `;
-    if (!document.head.querySelector('style[data-pulse-gradient]')) {
-      style.setAttribute('data-pulse-gradient', 'true');
+    if (!document.head.querySelector("style[data-pulse-gradient]")) {
+      style.setAttribute("data-pulse-gradient", "true");
       document.head.appendChild(style);
     }
     return () => {
-      const existingStyle = document.head.querySelector('style[data-pulse-gradient]');
+      const existingStyle = document.head.querySelector(
+        "style[data-pulse-gradient]"
+      );
       if (existingStyle) document.head.removeChild(existingStyle);
     };
   }, []);
@@ -218,10 +220,16 @@ export function PerformanceChart({
       {/* Performance Metrics */}
       {showMetrics && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <Card className={`transition-all duration-200 ${highlightedMetric === "final_value" ? "ring-2 ring-blue-400 shadow-lg scale-105 bg-blue-50" : ""}`}>
+          <Card
+            className={`transition-all duration-200 ${
+              highlightedMetric === "final_value"
+                ? "ring-2 ring-blue-400 shadow-lg scale-105 bg-blue-50"
+                : ""
+            }`}
+          >
             <CardContent className="px-2 py-1">
               <div className="flex flex-col space-y-0.5">
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center space-x-1 justify-center">
                   <DollarSign className="h-3 w-3 text-green-600 flex-shrink-0" />
                   <p className="text-xs font-medium text-muted-foreground">
                     Final Value
@@ -234,10 +242,16 @@ export function PerformanceChart({
             </CardContent>
           </Card>
 
-          <Card className={`transition-all duration-200 ${highlightedMetric === "total_return" ? "ring-2 ring-blue-400 shadow-lg scale-105 bg-blue-50" : ""}`}>
+          <Card
+            className={`transition-all duration-200 ${
+              highlightedMetric === "total_return"
+                ? "ring-2 ring-blue-400 shadow-lg scale-105 bg-blue-50"
+                : ""
+            }`}
+          >
             <CardContent className="px-2 py-1">
               <div className="flex flex-col space-y-0.5">
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center space-x-1 justify-center">
                   {totalReturn >= 0 ? (
                     <TrendingUp className="h-3 w-3 text-green-600 flex-shrink-0" />
                   ) : (
@@ -258,10 +272,16 @@ export function PerformanceChart({
             </CardContent>
           </Card>
 
-          <Card className={`transition-all duration-200 ${highlightedMetric === "volatility" ? "ring-2 ring-blue-400 shadow-lg scale-105 bg-blue-50" : ""}`}>
+          <Card
+            className={`transition-all duration-200 ${
+              highlightedMetric === "volatility"
+                ? "ring-2 ring-blue-400 shadow-lg scale-105 bg-blue-50"
+                : ""
+            }`}
+          >
             <CardContent className="px-2 py-1">
               <div className="flex flex-col space-y-0.5">
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center space-x-1 justify-center">
                   <BarChart3 className="h-3 w-3 text-blue-600 flex-shrink-0" />
                   <p className="text-xs font-medium text-muted-foreground">
                     Volatility
@@ -274,11 +294,17 @@ export function PerformanceChart({
             </CardContent>
           </Card>
 
-          <Card className={`transition-all duration-200 ${highlightedMetric === "sharpe_ratio" ? "ring-2 ring-blue-400 shadow-lg scale-105 bg-blue-50" : ""}`}>
+          <Card
+            className={`transition-all duration-200 ${
+              highlightedMetric === "sharpe_ratio"
+                ? "ring-2 ring-blue-400 shadow-lg scale-105 bg-blue-50"
+                : ""
+            }`}
+          >
             <CardContent className="px-2 py-1">
               <div className="flex flex-col space-y-0.5">
-                <div className="flex flex-col space-y-0.5">
-                  <div className="flex items-center justify-center">
+                <div className="flex flex-col space-y-0.5 items-center">
+                  <div className="flex items-center justify-center w-full">
                     <Badge
                       variant={
                         sharpeRatio > 1
@@ -309,7 +335,13 @@ export function PerformanceChart({
 
       {/* Portfolio Value Chart */}
       {showPortfolioChart && (
-        <Card className={`transition-all duration-200 ${highlightedMetric === "portfolio_chart" ? "ring-2 ring-purple-400 shadow-lg scale-105 animate-pulse-gradient" : ""}`}>
+        <Card
+          className={`transition-all duration-200 ${
+            highlightedMetric === "portfolio_chart"
+              ? "ring-2 ring-purple-400 shadow-lg scale-105 animate-pulse-gradient"
+              : ""
+          }`}
+        >
           <CardHeader>
             <CardTitle>Portfolio Performance (Annual)</CardTitle>
             <CardDescription>
@@ -352,7 +384,13 @@ export function PerformanceChart({
 
       {/* Returns Chart */}
       {showReturnsChart && (
-        <Card className={`transition-all duration-200 ${highlightedMetric === "portfolio_chart" ? "ring-2 ring-purple-400 shadow-lg scale-105 animate-pulse-gradient" : ""}`}>
+        <Card
+          className={`transition-all duration-200 ${
+            highlightedMetric === "portfolio_chart"
+              ? "ring-2 ring-purple-400 shadow-lg scale-105 animate-pulse-gradient"
+              : ""
+          }`}
+        >
           <CardHeader>
             <CardTitle>Annual Returns</CardTitle>
             <CardDescription>
@@ -394,7 +432,13 @@ export function PerformanceChart({
 
       {/* Risk Metrics */}
       {showRiskAnalysis && (
-        <Card className={`transition-all duration-200 ${highlightedMetric === "portfolio_chart" ? "ring-2 ring-purple-400 shadow-lg scale-105 animate-pulse-gradient" : ""}`}>
+        <Card
+          className={`transition-all duration-200 ${
+            highlightedMetric === "portfolio_chart"
+              ? "ring-2 ring-purple-400 shadow-lg scale-105 animate-pulse-gradient"
+              : ""
+          }`}
+        >
           <CardHeader>
             <CardTitle>Risk Analysis</CardTitle>
             <CardDescription>

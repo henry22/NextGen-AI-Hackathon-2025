@@ -27,7 +27,7 @@ export function GameHeader({
 
   return (
     <header className="border-b bg-card shadow-sm">
-      <div className="mx-auto max-w-[680px] lg:max-w-7xl px-4 py-4">
+      <div className="container mx-auto sm:px-4 py-4">
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-center sm:text-left">
             <h1 className="text-2xl sm:text-3xl font-serif font-black text-primary flex items-center justify-center sm:justify-start gap-2">
