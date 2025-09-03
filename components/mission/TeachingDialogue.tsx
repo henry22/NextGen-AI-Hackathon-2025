@@ -755,30 +755,24 @@ export function TeachingDialogue({
     const generateIntelligentSummary = (): string => {
       const actualFinalValue = realMetrics ? realMetrics.final_value : finalAmount;
       const actualTotalReturn = realMetrics ? realMetrics.total_return : actualReturn;
-      const actualVolatility = realMetrics ? realMetrics.volatility : 16.26;
-      const actualSharpe = realMetrics ? realMetrics.sharpe_ratio : 0.1;
-      
-      // Performance analysis
-      const performanceLevel = actualTotalReturn > 15 ? "exceptional" : actualTotalReturn > 5 ? "solid" : actualTotalReturn > 0 ? "modest" : "challenging";
-      const riskLevel = actualVolatility > 25 ? "high" : actualVolatility > 15 ? "moderate" : "low";
       
       // Mission-specific insights
       let missionContext = "";
       if (event.title.toLowerCase().includes("bubble")) {
         missionContext = actualTotalReturn > 0 ? 
           "You successfully navigated the market bubble by staying disciplined during volatile times." :
-          "Market bubbles are notoriously difficult to time - this experience teaches valuable lessons about market psychology.";
+          "Market bubbles are challenging - this experience teaches valuable lessons about market psychology.";
       } else if (event.title.toLowerCase().includes("crisis")) {
         missionContext = actualTotalReturn > 0 ?
-          "Impressive! You found opportunity during the crisis when many investors were paralyzed by fear." :
-          "Financial crises test every investor - your experience here builds resilience for future market downturns.";
+          "Impressive! You found opportunity during the crisis when others were paralyzed by fear." :
+          "Financial crises test every investor - your experience builds resilience for future challenges.";
       } else {
         missionContext = actualTotalReturn > 0 ?
           "Your investment approach worked well for this market environment." :
           "This challenging period provided valuable learning about market dynamics.";
       }
       
-      return `🎯 **Mission Summary: ${event.title}** 🎯\n\nYour ${selectedOption.name} investment generated ${performanceLevel} results with a **${actualTotalReturn.toFixed(2)}%** return, ending at **$${Math.round(actualFinalValue).toLocaleString()}**. ${missionContext}\n\n**📊 Performance Analysis:**\n• **Risk Profile**: ${riskLevel} volatility (${actualVolatility.toFixed(1)}%)\n• **Risk-Adjusted Return**: ${actualSharpe > 1 ? "Excellent" : actualSharpe > 0.5 ? "Good" : "Needs improvement"} (Sharpe: ${actualSharpe.toFixed(2)})\n\n**🎓 My Key Recommendations:**\n${recommendations.map(rec => `• ${rec}`).join('\n')}\n\n**🚀 Next Steps:**\n${nextSteps.map(step => `• ${step}`).join('\n')}\n\n**💪 ${encouragement}**`;
+      return `🎯 **Mission Summary: ${event.title}**\n\nYour ${selectedOption.name} investment achieved a **${actualTotalReturn.toFixed(2)}%** return, ending at **$${Math.round(actualFinalValue).toLocaleString()}**. ${missionContext}\n\n**🎓 My Key Recommendations:**\n${recommendations.slice(0, 3).map(rec => `• ${rec}`).join('\n')}\n\n**💪 ${encouragement}**`;
     };
     
     const intelligentSummary = generateIntelligentSummary();
