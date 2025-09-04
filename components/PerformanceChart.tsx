@@ -219,7 +219,7 @@ export function PerformanceChart({
     <div className="space-y-4">
       {/* Performance Metrics */}
       {showMetrics && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Card
             className={`transition-all duration-200 ${
               highlightedMetric === "final_value"
@@ -227,10 +227,10 @@ export function PerformanceChart({
                 : ""
             }`}
           >
-            <CardContent className="px-2 py-1">
-              <div className="flex flex-col space-y-0.5">
+            <CardContent className="px-2 py-1 sm:px-2 sm:py-1">
+              <div className="flex flex-col space-y-0.5 sm:space-y-0.5">
                 <div className="flex items-center space-x-1 justify-center">
-                  <DollarSign className="h-3 w-3 text-green-600 flex-shrink-0" />
+                  <DollarSign className="h-3 w-3 sm:h-3 sm:w-3 text-green-600 flex-shrink-0" />
                   <p className="text-xs font-medium text-muted-foreground">
                     Final Value
                   </p>
@@ -249,13 +249,13 @@ export function PerformanceChart({
                 : ""
             }`}
           >
-            <CardContent className="px-2 py-1">
-              <div className="flex flex-col space-y-0.5">
+            <CardContent className="px-2 py-1 sm:px-2 sm:py-1">
+              <div className="flex flex-col space-y-0.5 sm:space-y-0.5">
                 <div className="flex items-center space-x-1 justify-center">
                   {totalReturn >= 0 ? (
-                    <TrendingUp className="h-3 w-3 text-green-600 flex-shrink-0" />
+                    <TrendingUp className="h-3 w-3 sm:h-3 sm:w-3 text-green-600 flex-shrink-0" />
                   ) : (
-                    <TrendingDown className="h-3 w-3 text-red-600 flex-shrink-0" />
+                    <TrendingDown className="h-3 w-3 sm:h-3 sm:w-3 text-red-600 flex-shrink-0" />
                   )}
                   <p className="text-xs font-medium text-muted-foreground">
                     Total Return
@@ -279,10 +279,10 @@ export function PerformanceChart({
                 : ""
             }`}
           >
-            <CardContent className="px-2 py-1">
-              <div className="flex flex-col space-y-0.5">
+            <CardContent className="px-2 py-1 sm:px-2 sm:py-1">
+              <div className="flex flex-col space-y-0.5 sm:space-y-0.5">
                 <div className="flex items-center space-x-1 justify-center">
-                  <BarChart3 className="h-3 w-3 text-blue-600 flex-shrink-0" />
+                  <BarChart3 className="h-3 w-3 sm:h-3 sm:w-3 text-blue-600 flex-shrink-0" />
                   <p className="text-xs font-medium text-muted-foreground">
                     Volatility
                   </p>
@@ -301,8 +301,8 @@ export function PerformanceChart({
                 : ""
             }`}
           >
-            <CardContent className="px-2 py-1">
-              <div className="flex flex-col space-y-0.5">
+            <CardContent className="px-2 py-1 sm:px-2 sm:py-1">
+              <div className="flex flex-col space-y-0.5 sm:space-y-0.5">
                 <div className="flex flex-col space-y-0.5 items-center">
                   <div className="flex items-center justify-center w-full">
                     <Badge
