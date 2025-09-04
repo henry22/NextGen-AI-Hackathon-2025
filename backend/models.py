@@ -149,3 +149,32 @@ class RewardRedeemResponse(BaseModel):
     coupon_code: Optional[str] = None
     simulated: bool = False
     email_sent: bool = False
+
+class Holding(BaseModel):
+    shares: float
+    avgPrice: float
+    currentPrice: Optional[float] = None
+    dailyChange: Optional[float] = None
+
+class AICoach(BaseModel):
+    id: str
+    name: str
+    avatar: Optional[str] = None
+    style: Optional[str] = None
+    gif: Optional[str] = None
+
+class Action(BaseModel):
+    type: str  # "buy" | "sell"
+    asset: str
+    amount: float
+    price: Optional[float] = None
+
+class CoachReplyRequest(BaseModel):
+    selectedCoach: AICoach
+    userMessage: Optional[str] = None
+    portfolio: Optional[Dict[str, Holding]] = None
+    cash: Optional[float] = 0.0
+    action: Optional[Action] = None
+
+class CoachReplyResponse(BaseModel):
+    reply: str

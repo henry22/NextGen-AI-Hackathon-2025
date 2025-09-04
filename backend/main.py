@@ -6,11 +6,12 @@ from services.rebalance_service import RebalanceService
 from services.optimization_service import OptimizationService
 from services.simulation_service import SimulationService
 from services.price_service import PriceService
+from services.coach_chat import CoachChatService
 from services.email_service import EmailService
 from models import (
     PriceRequest, SimulationRequest, OptimizationRequest,
     RebalanceRequest, YieldSimRequest, CoachRequest, CoachResponse,
-    LeaderboardSubmit, LeaderboardResponse, RewardRedeemRequest, RewardRedeemResponse
+    LeaderboardSubmit, LeaderboardResponse, RewardRedeemRequest, RewardRedeemResponse, CoachReplyRequest, CoachReplyResponse
 )
 from database import get_db, init_db
 from fastapi import FastAPI, HTTPException, Depends, Query, Request
@@ -57,7 +58,6 @@ def safe_json_serializer(obj):
     if isinstance(obj, pd.DataFrame):
         return obj.to_dict('records')
     return obj
-
 
 app = FastAPI(
     title="Legacy Guardians API",
@@ -567,6 +567,14 @@ def _get_fallback_quotes(syms: Dict[str, str]) -> List[Dict[str, Any]]:
                 f"🔄 Fallback quote for {_id}: price={price}, change={change}%")
 
     return results
+
+
+coach_chat_service = CoachChatService()
+
+
+@app.post("/api/coach/reply", response_model=CoachReplyResponse)
+async def coach_reply(payload: CoachReplyRequest):
+    return await coach_chat_service.generate_reply(payload)
 
 
 # Initialize services

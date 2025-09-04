@@ -100,6 +100,39 @@ export interface LeaderboardResponse {
   timestamp: string;
 }
 
+export interface CoachChatAction {
+  type: "buy" | "sell";
+  asset: string;
+  amount: number;
+  price: number;
+}
+
+export interface CoachChatPayload {
+  selectedCoach: {
+    id: string;
+    name: string;
+    avatar?: string;
+    style?: string; // e.g. "Conservative Coach" | "Balanced Coach" | "Aggressive Coach" | "Tech Coach"
+    gif?: string;
+  };
+  userMessage?: string;
+  portfolio?: Record<
+    string,
+    {
+      shares: number;
+      avgPrice: number;
+      currentPrice?: number;
+      dailyChange?: number;
+    }
+  >;
+  cash?: number;
+  action?: CoachChatAction;
+}
+
+export interface CoachChatResponse {
+  reply: string;
+}
+
 export const api = {
   // Health check
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
@@ -274,6 +307,17 @@ export const api = {
       )}&start_date=${start_date}&end_date=${end_date}`
     );
     if (!response.ok) throw new Error("Failed to fetch asset comparison");
+    return response.json();
+  },
+
+  // Chat with AI coach (FastAPI /api/coach/reply)
+  async getCoachChat(payload: CoachChatPayload): Promise<CoachChatResponse> {
+    const response = await fetch(`${API_BASE}/api/coach/reply`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error("Failed to get coach chat");
     return response.json();
   },
 };
