@@ -983,6 +983,16 @@ export function TeachingDialogue({
     setHoveredMetric(metricKey);
   };
 
+  // Helper function to clean advice text - remove titles and format properly
+  const cleanAdviceText = (text: string | undefined): string => {
+    if (!text) return "";
+    // Remove common title prefixes and clean up the text
+    return text
+      .replace(/^(Key Recommendations?|Next Steps?|My Key Recommendations?|🎓 My Key Recommendations?|🚀 Next Steps?):\s*/i, "")
+      .replace(/^[•\-\*]\s*/, "") // Remove bullet points
+      .trim();
+  };
+
   // Generate AI explanation based on metric and current data
   const generateMetricExplanation = async (metricKey: string, targetMetric: string): Promise<string> => {
     if (!aiCoachAdvice) return "Loading explanation...";
@@ -997,19 +1007,19 @@ export function TeachingDialogue({
       case "final_value":
         return `Your final investment value is $${Math.round(actualFinalValue).toLocaleString()}. ${actualTotalReturn > 0 ? 
           `Congratulations! Your investment grew by ${actualTotalReturn.toFixed(2)}%. ${aiCoachAdvice.encouragement || "Great job on this investment!"}` : 
-          `Though your investment declined by ${Math.abs(actualTotalReturn).toFixed(2)}%, this is valuable learning experience. ${aiCoachAdvice.recommendations?.[0] || "Remember, investing is a long-term game and losses help us learn."}`}`;
+          `Though your investment declined by ${Math.abs(actualTotalReturn).toFixed(2)}%, this is valuable learning experience. ${cleanAdviceText(aiCoachAdvice.recommendations?.[0]) || "Remember, investing is a long-term game and losses help us learn."}`}`;
         
       case "total_return":
         return `Your total return is ${actualTotalReturn.toFixed(2)}%. This is a ${Math.abs(actualTotalReturn) > 20 ? 
-          "significant" : "moderate"} ${actualTotalReturn > 0 ? "gain" : "loss"}. ${aiCoachAdvice.risk_assessment || "Market conditions played a role in this outcome."} ${aiCoachAdvice.recommendations?.[1] || "Understanding returns helps you make better future decisions."}`;
+          "significant" : "moderate"} ${actualTotalReturn > 0 ? "gain" : "loss"}. ${aiCoachAdvice.risk_assessment || "Market conditions played a role in this outcome."} ${cleanAdviceText(aiCoachAdvice.recommendations?.[1]) || "Understanding returns helps you make better future decisions."}`;
         
       case "volatility":
         return `Volatility is ${actualVolatility.toFixed(2)}%, showing your investment's price movement range. ${actualVolatility > 20 ? 
-          "This is high volatility, meaning greater risk and potential returns." : "This is relatively stable, indicating lower risk but potentially lower returns too."} ${aiCoachAdvice.recommendations?.[2] || "Balancing risk and return is key to successful investing."}`;
+          "This is high volatility, meaning greater risk and potential returns." : "This is relatively stable, indicating lower risk but potentially lower returns too."} ${cleanAdviceText(aiCoachAdvice.recommendations?.[2]) || "Balancing risk and return is key to successful investing."}`;
         
       case "sharpe_ratio":
         return `Sharpe ratio is ${actualSharpe.toFixed(2)}, measuring risk-adjusted returns. ${actualSharpe > 1 ? 
-          "Excellent risk-adjusted performance!" : actualSharpe > 0 ? "Reasonable risk-return balance." : "This suggests the return may not have justified the risk taken."} ${aiCoachAdvice.next_steps?.[0] || "Focus on risk-adjusted returns for better investment decisions."}`;
+          "Excellent risk-adjusted performance!" : actualSharpe > 0 ? "Reasonable risk-return balance." : "This suggests the return may not have justified the risk taken."} ${cleanAdviceText(aiCoachAdvice.next_steps?.[0]) || "Focus on risk-adjusted returns for better investment decisions."}`;
         
       case "portfolio_chart":
         let chartExplanation = "";
@@ -1025,7 +1035,7 @@ export function TeachingDialogue({
           `The overall upward trend demonstrates how markets can reward patient investors even during challenging periods.` : 
           `While the outcome was negative, understanding these patterns helps you make more informed decisions in similar future scenarios.`;
         
-        return chartExplanation + ` ${aiCoachAdvice.recommendations?.[0] || "Track your performance by year to spot trends and patterns."}`;
+        return chartExplanation + ` ${cleanAdviceText(aiCoachAdvice.recommendations?.[0]) || "Track your performance by year to spot trends and patterns."}`;
         
       default:
         return aiCoachAdvice.advice || "Let me know if you have any questions about your investment performance!";
@@ -1157,7 +1167,7 @@ export function TeachingDialogue({
           ></div>
           <Image
             src={
-              isTyping || !showContinue ? coach.animatedAvatar : coach.avatar
+              isCoachTyping ? coach.animatedAvatar : coach.avatar
             }
             alt={coach.name}
             fill
