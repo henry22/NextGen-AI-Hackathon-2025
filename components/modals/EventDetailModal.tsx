@@ -47,7 +47,7 @@ export function EventDetailModal({
 
   return (
     <Dialog open={!!event} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl h-dvh overflow-y-scroll">
+      <DialogContent className="max-w-2xl h-[95dvh] sm:h-auto overflow-y-scroll">
         <DialogHeader>
           <DialogTitle className="font-serif text-xl">
             {event.year} - {event.title}
