@@ -408,49 +408,83 @@ export default function TradingDashboard({
     <div className="min-h-screen bg-gradient-to-br from-background via-card/30 to-background">
       <div className="container mx-auto px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-center justify-between mb-6 sm:mb-8 gap-6 sm:gap-0 px-4 sm:px-0">
-          <Button
-            variant="outline"
-            onClick={() => onEndCompetition(null)}
-            className="flex items-center gap-2 bg-transparent w-full sm:w-auto justify-center order-2 sm:order-none py-3 sm:py-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Setup
-          </Button>
-          <div className="text-center order-1 sm:order-none flex-1">
-            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-foreground mb-2 sm:mb-1">
-              Investment Competition - Day {day}
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Investing with {selectedCoach.name}
-            </p>
+        <div className="mb-6 sm:mb-8">
+          {/* Mobile Layout */}
+          <div className="sm:hidden space-y-3">
+            {/* Title Section */}
+            <div className="text-center">
+              <h1 className="text-lg font-serif font-bold text-foreground mb-1">
+                Investment Competition - Day {day}
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                Investing with {selectedCoach.name}
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => onEndCompetition(null)}
+                className="flex items-center gap-1 bg-transparent flex-1 py-2 text-sm"
+              >
+                <ArrowLeft className="h-3 w-3" />
+                Back to Setup
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleEndCompetition}
+                className="flex-1 py-2 text-sm bg-destructive hover:bg-destructive/90"
+              >
+                End Competition
+              </Button>
+            </div>
           </div>
-          <div className="w-full sm:w-auto order-3 sm:order-none flex justify-end">
+
+          {/* Desktop Layout */}
+          <div className="hidden sm:flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={() => onEndCompetition(null)}
+              className="flex items-center gap-2 bg-transparent py-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Setup
+            </Button>
+            <div className="text-center flex-1">
+              <h1 className="text-3xl font-serif font-bold text-foreground mb-1">
+                Investment Competition - Day {day}
+              </h1>
+              <p className="text-base text-muted-foreground">
+                Investing with {selectedCoach.name}
+              </p>
+            </div>
             <Button
               variant="destructive"
               onClick={handleEndCompetition}
-              className="w-full sm:w-auto py-3 sm:py-2 bg-destructive hover:bg-destructive/90"
+              className="py-2 bg-destructive hover:bg-destructive/90"
             >
               End Competition
             </Button>
           </div>
         </div>
 
-        <div className="px-4 sm:px-0">
+        {/* Main Content */}
+        <div className="space-y-6 sm:space-y-8">
           <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Portfolio Overview */}
             <div className="lg:col-span-2 space-y-6 sm:space-y-8">
               {/* Performance Summary */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
                 <Card className="bg-card border-border">
-                  <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                  <CardContent className="p-2 sm:p-3 md:p-4">
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-primary" />
                       <div>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           Total Assets
                         </p>
-                        <p className="text-lg sm:text-xl font-bold text-foreground">
+                        <p className="text-sm sm:text-lg md:text-xl font-bold text-foreground">
                           ${totalValue.toFixed(2)}
                         </p>
                       </div>
@@ -459,14 +493,12 @@ export default function TradingDashboard({
                 </Card>
 
                 <Card className="bg-card border-border">
-                  <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-secondary" />
+                  <CardContent className="p-2 sm:p-3 md:p-4">
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <Activity className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-secondary" />
                       <div>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                          Cash
-                        </p>
-                        <p className="text-lg sm:text-xl font-bold text-foreground">
+                        <p className="text-xs text-muted-foreground">Cash</p>
+                        <p className="text-sm sm:text-lg md:text-xl font-bold text-foreground">
                           ${cash.toFixed(2)}
                         </p>
                       </div>
@@ -475,19 +507,19 @@ export default function TradingDashboard({
                 </Card>
 
                 <Card className="bg-card border-border">
-                  <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-center gap-2">
+                  <CardContent className="p-2 sm:p-3 md:p-4">
+                    <div className="flex items-center gap-1 sm:gap-2">
                       {dailyReturn >= 0 ? (
-                        <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-chart-1" />
+                        <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-chart-1" />
                       ) : (
-                        <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-chart-2" />
+                        <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-chart-2" />
                       )}
                       <div>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           Total Return
                         </p>
                         <p
-                          className={`text-lg sm:text-xl font-bold ${
+                          className={`text-sm sm:text-lg md:text-xl font-bold ${
                             dailyReturn >= 0 ? "text-chart-1" : "text-chart-2"
                           }`}
                         >
@@ -500,15 +532,13 @@ export default function TradingDashboard({
                 </Card>
 
                 <Card className="bg-card border-border">
-                  <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-center gap-2">
-                      <Target className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
+                  <CardContent className="p-2 sm:p-3 md:p-4">
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <Target className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-accent" />
                       <div>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                          P&L
-                        </p>
+                        <p className="text-xs text-muted-foreground">P&L</p>
                         <p
-                          className={`text-lg sm:text-xl font-bold ${
+                          className={`text-sm sm:text-lg md:text-xl font-bold ${
                             totalValue >= startingCapital
                               ? "text-chart-1"
                               : "text-chart-2"
@@ -524,17 +554,17 @@ export default function TradingDashboard({
 
               {/* Portfolio Performance Chart */}
               <Card className="bg-card border-border">
-                <CardHeader className="pb-3 sm:pb-6">
-                  <CardTitle className="flex items-center gap-2 text-foreground text-base sm:text-lg">
-                    <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
+                <CardHeader className="pb-2 sm:pb-3 md:pb-6">
+                  <CardTitle className="flex items-center gap-1 sm:gap-2 text-foreground text-sm sm:text-base md:text-lg">
+                    <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5" />
                     Portfolio Performance
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-3 sm:p-6">
+                <CardContent className="p-2 sm:p-3 md:p-6">
                   <ResponsiveContainer
                     width="100%"
-                    height={250}
-                    className="sm:h-[300px]"
+                    height={200}
+                    className="sm:h-[250px] md:h-[300px]"
                   >
                     <LineChart data={performanceData}>
                       <CartesianGrid
@@ -602,13 +632,13 @@ export default function TradingDashboard({
 
               {/* Holdings & Trading */}
               <Card className="bg-card border-border">
-                <CardHeader>
-                  <CardTitle className="text-foreground">
+                <CardHeader className="pb-2 sm:pb-4">
+                  <CardTitle className="text-foreground text-sm sm:text-base">
                     Holdings & Trading
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+                <CardContent className="p-2 sm:p-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {Object.entries(portfolio).map(([asset, holding]) => {
                       if (holding.shares > 0) {
                         const currentValue =
@@ -624,25 +654,23 @@ export default function TradingDashboard({
                         return (
                           <div
                             key={asset}
-                            className="flex items-center justify-between p-4 bg-muted rounded-lg"
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-muted rounded-lg space-y-2 sm:space-y-0"
                           >
                             <div className="flex-1">
-                              <h4 className="font-semibold text-foreground">
+                              <h4 className="font-semibold text-foreground text-sm sm:text-base">
                                 {(investmentNames as any)[asset]}
                               </h4>
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mt-1">
                                 <span>Shares: {holding.shares.toFixed(4)}</span>
-                                <span>
-                                  Avg Price: ${holding.avgPrice.toFixed(2)}
-                                </span>
+                                <span>Avg: ${holding.avgPrice.toFixed(2)}</span>
                                 <span>
                                   Current: ${holding.currentPrice.toFixed(2)}
                                 </span>
                                 <Badge
                                   className={
                                     gainLoss >= 0
-                                      ? "bg-chart-1 text-white"
-                                      : "bg-chart-2 text-white"
+                                      ? "bg-chart-1 text-white text-xs"
+                                      : "bg-chart-2 text-white text-xs"
                                   }
                                 >
                                   {gainLoss >= 0 ? "+" : ""}
@@ -650,8 +678,8 @@ export default function TradingDashboard({
                                 </Badge>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <span className="font-semibold text-foreground">
+                            <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
+                              <span className="font-semibold text-foreground text-sm sm:text-base">
                                 ${currentValue.toFixed(2)}
                               </span>
                               <div className="flex items-center gap-1">
