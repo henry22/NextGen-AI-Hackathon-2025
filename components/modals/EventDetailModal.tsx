@@ -22,11 +22,11 @@ interface EventDetailModalProps {
   onStartMission: () => void;
 }
 
-export function EventDetailModal({ 
-  event, 
-  selectedCoach, 
-  onClose, 
-  onStartMission 
+export function EventDetailModal({
+  event,
+  selectedCoach,
+  onClose,
+  onStartMission,
 }: EventDetailModalProps) {
   if (!event) return null;
 
@@ -47,7 +47,7 @@ export function EventDetailModal({
 
   return (
     <Dialog open={!!event} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl h-dvh overflow-y-scroll">
         <DialogHeader>
           <DialogTitle className="font-serif text-xl">
             {event.year} - {event.title}
