@@ -405,301 +405,317 @@ export default function TradingDashboard({
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-card/30 to-background">
+      <div className="mx-auto sm:px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-6 sm:mb-8 gap-6 sm:gap-0 px-4 sm:px-0">
           <Button
             variant="outline"
             onClick={() => onEndCompetition(null)}
-            className="flex items-center gap-2 bg-transparent"
+            className="flex items-center gap-2 bg-transparent w-full sm:w-auto justify-center order-2 sm:order-none py-3 sm:py-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Setup
           </Button>
-          <div className="text-center">
-            <h1 className="text-2xl font-serif font-bold text-foreground">
+          <div className="text-center order-1 sm:order-none flex-1">
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-foreground mb-2 sm:mb-1">
               Investment Competition - Day {day}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               Investing with {selectedCoach.name}
             </p>
           </div>
-          <Button
-            variant="destructive"
-            onClick={handleEndCompetition}
-            className="bg-destructive hover:bg-destructive/90"
-          >
-            End Competition
-          </Button>
+          <div className="w-full sm:w-auto order-3 sm:order-none flex justify-end">
+            <Button
+              variant="destructive"
+              onClick={handleEndCompetition}
+              className="w-full sm:w-auto py-3 sm:py-2 bg-destructive hover:bg-destructive/90"
+            >
+              End Competition
+            </Button>
+          </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Portfolio Overview */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Performance Summary */}
-            <div className="grid md:grid-cols-4 gap-4">
-              <Card className="bg-card border-border">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Total Assets
-                      </p>
-                      <p className="text-xl font-bold text-foreground">
-                        ${totalValue.toFixed(2)}
-                      </p>
+        <div className="px-4 sm:px-0">
+          <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
+            {/* Portfolio Overview */}
+            <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+              {/* Performance Summary */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                <Card className="bg-card border-border">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                      <div>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          Total Assets
+                        </p>
+                        <p className="text-lg sm:text-xl font-bold text-foreground">
+                          ${totalValue.toFixed(2)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-secondary" />
+                      <div>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          Cash
+                        </p>
+                        <p className="text-lg sm:text-xl font-bold text-foreground">
+                          ${cash.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2">
+                      {dailyReturn >= 0 ? (
+                        <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-chart-1" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-chart-2" />
+                      )}
+                      <div>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          Total Return
+                        </p>
+                        <p
+                          className={`text-lg sm:text-xl font-bold ${
+                            dailyReturn >= 0 ? "text-chart-1" : "text-chart-2"
+                          }`}
+                        >
+                          {dailyReturn >= 0 ? "+" : ""}
+                          {dailyReturn.toFixed(2)}%
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center gap-2">
+                      <Target className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
+                      <div>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          P&L
+                        </p>
+                        <p
+                          className={`text-lg sm:text-xl font-bold ${
+                            totalValue >= startingCapital
+                              ? "text-chart-1"
+                              : "text-chart-2"
+                          }`}
+                        >
+                          ${(totalValue - startingCapital).toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Portfolio Performance Chart */}
+              <Card className="bg-card border-border">
+                <CardHeader className="pb-3 sm:pb-6">
+                  <CardTitle className="flex items-center gap-2 text-foreground text-base sm:text-lg">
+                    <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
+                    Portfolio Performance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-6">
+                  <ResponsiveContainer
+                    width="100%"
+                    height={250}
+                    className="sm:h-[300px]"
+                  >
+                    <LineChart data={performanceData}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="var(--border)"
+                      />
+                      <XAxis
+                        dataKey="time"
+                        type="number"
+                        domain={[0, 24]}
+                        ticks={hourlyTicks}
+                        tickFormatter={(h) =>
+                          `${String(h).padStart(2, "0")}:00`
+                        }
+                        stroke="var(--muted-foreground)"
+                      />
+                      <YAxis
+                        domain={["auto", "auto"]}
+                        stroke="var(--muted-foreground)"
+                      />
+                      <Tooltip
+                        labelFormatter={(h) =>
+                          `${String(h).padStart(2, "0")}:00`
+                        }
+                        formatter={(val, name) => {
+                          const num = Number(val);
+                          return [
+                            `$${num.toFixed(2)}`,
+                            name === "total" ? "Total" : name,
+                          ];
+                        }}
+                        contentStyle={{
+                          backgroundColor: "var(--card)",
+                          border: "1px solid var(--border)",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="total"
+                        stroke="var(--primary)"
+                        strokeWidth={2}
+                        dot={false}
+                        isAnimationActive={false}
+                        name="total"
+                      />
+                      {Object.entries(portfolio).map(([asset, holding], idx) =>
+                        holding.shares > 0 ? (
+                          <Line
+                            key={asset}
+                            type="monotone"
+                            dataKey={asset}
+                            stroke={`var(--chart-${(idx % 5) + 1})`}
+                            strokeWidth={1.75}
+                            dot={false}
+                            isAnimationActive={false}
+                            name={(investmentNames as any)[asset] || asset}
+                          />
+                        ) : null
+                      )}
+                    </LineChart>
+                  </ResponsiveContainer>
                 </CardContent>
               </Card>
 
+              {/* Holdings & Trading */}
               <Card className="bg-card border-border">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-secondary" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Cash</p>
-                      <p className="text-xl font-bold text-foreground">
-                        ${cash.toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2">
-                    {dailyReturn >= 0 ? (
-                      <TrendingUp className="h-5 w-5 text-chart-1" />
-                    ) : (
-                      <TrendingDown className="h-5 w-5 text-chart-2" />
-                    )}
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Total Return
-                      </p>
-                      <p
-                        className={`text-xl font-bold ${
-                          dailyReturn >= 0 ? "text-chart-1" : "text-chart-2"
-                        }`}
-                      >
-                        {dailyReturn >= 0 ? "+" : ""}
-                        {dailyReturn.toFixed(2)}%
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border-border">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-accent" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">P&L</p>
-                      <p
-                        className={`text-xl font-bold ${
-                          totalValue >= startingCapital
-                            ? "text-chart-1"
-                            : "text-chart-2"
-                        }`}
-                      >
-                        ${(totalValue - startingCapital).toFixed(2)}
-                      </p>
-                    </div>
+                <CardHeader>
+                  <CardTitle className="text-foreground">
+                    Holdings & Trading
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {Object.entries(portfolio).map(([asset, holding]) => {
+                      if (holding.shares > 0) {
+                        const currentValue =
+                          holding.shares * holding.currentPrice;
+                        const gainLoss =
+                          ((holding.currentPrice - holding.avgPrice) /
+                            holding.avgPrice) *
+                          100;
+                        const qty = tradeQty[asset] ?? 1;
+                        const canBuy =
+                          cash >= qty * getLivePrice(asset) && qty > 0;
+                        const canSell = holding.shares > 0 && qty > 0;
+                        return (
+                          <div
+                            key={asset}
+                            className="flex items-center justify-between p-4 bg-muted rounded-lg"
+                          >
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-foreground">
+                                {(investmentNames as any)[asset]}
+                              </h4>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                <span>Shares: {holding.shares.toFixed(4)}</span>
+                                <span>
+                                  Avg Price: ${holding.avgPrice.toFixed(2)}
+                                </span>
+                                <span>
+                                  Current: ${holding.currentPrice.toFixed(2)}
+                                </span>
+                                <Badge
+                                  className={
+                                    gainLoss >= 0
+                                      ? "bg-chart-1 text-white"
+                                      : "bg-chart-2 text-white"
+                                  }
+                                >
+                                  {gainLoss >= 0 ? "+" : ""}
+                                  {gainLoss.toFixed(2)}%
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="font-semibold text-foreground">
+                                ${currentValue.toFixed(2)}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleBuy(asset, qty)}
+                                  disabled={!canBuy}
+                                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                                  title={
+                                    !canBuy
+                                      ? "Not enough cash or invalid qty"
+                                      : "Buy"
+                                  }
+                                >
+                                  <ShoppingCart className="h-3 w-3" />
+                                </Button>
+                                <Input
+                                  type="number"
+                                  inputMode="decimal"
+                                  min={0}
+                                  step={0.1}
+                                  className="w-16 bg-white text-foreground"
+                                  value={Number.isFinite(qty) ? qty : 0.1}
+                                  onChange={(e) => {
+                                    const v = parseFloat(e.target.value);
+                                    setTradeQty((prev) => ({
+                                      ...prev,
+                                      [asset]: isNaN(v) ? 0 : v,
+                                    }));
+                                  }}
+                                />
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleSell(asset, qty)}
+                                  disabled={!canSell}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  title={!canSell ? "Invalid qty" : "Sell"}
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })}
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Portfolio Performance Chart */}
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <BarChart3 className="h-5 w-5" />
-                  Portfolio Performance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={performanceData}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="var(--border)"
-                    />
-                    <XAxis
-                      dataKey="time"
-                      type="number"
-                      domain={[0, 24]}
-                      ticks={hourlyTicks}
-                      tickFormatter={(h) => `${String(h).padStart(2, "0")}:00`}
-                      stroke="var(--muted-foreground)"
-                    />
-                    <YAxis
-                      domain={["auto", "auto"]}
-                      stroke="var(--muted-foreground)"
-                    />
-                    <Tooltip
-                      labelFormatter={(h) => `${String(h).padStart(2, "0")}:00`}
-                      formatter={(val, name) => {
-                        const num = Number(val);
-                        return [
-                          `$${num.toFixed(2)}`,
-                          name === "total" ? "Total" : name,
-                        ];
-                      }}
-                      contentStyle={{
-                        backgroundColor: "var(--card)",
-                        border: "1px solid var(--border)",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="total"
-                      stroke="var(--primary)"
-                      strokeWidth={2}
-                      dot={false}
-                      isAnimationActive={false}
-                      name="total"
-                    />
-                    {Object.entries(portfolio).map(([asset, holding], idx) =>
-                      holding.shares > 0 ? (
-                        <Line
-                          key={asset}
-                          type="monotone"
-                          dataKey={asset}
-                          stroke={`var(--chart-${(idx % 5) + 1})`}
-                          strokeWidth={1.75}
-                          dot={false}
-                          isAnimationActive={false}
-                          name={(investmentNames as any)[asset] || asset}
-                        />
-                      ) : null
-                    )}
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Holdings & Trading */}
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground">
-                  Holdings & Trading
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {Object.entries(portfolio).map(([asset, holding]) => {
-                    if (holding.shares > 0) {
-                      const currentValue =
-                        holding.shares * holding.currentPrice;
-                      const gainLoss =
-                        ((holding.currentPrice - holding.avgPrice) /
-                          holding.avgPrice) *
-                        100;
-                      const qty = tradeQty[asset] ?? 1;
-                      const canBuy =
-                        cash >= qty * getLivePrice(asset) && qty > 0;
-                      const canSell = holding.shares > 0 && qty > 0;
-                      return (
-                        <div
-                          key={asset}
-                          className="flex items-center justify-between p-4 bg-muted rounded-lg"
-                        >
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-foreground">
-                              {(investmentNames as any)[asset]}
-                            </h4>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                              <span>Shares: {holding.shares.toFixed(4)}</span>
-                              <span>
-                                Avg Price: ${holding.avgPrice.toFixed(2)}
-                              </span>
-                              <span>
-                                Current: ${holding.currentPrice.toFixed(2)}
-                              </span>
-                              <Badge
-                                className={
-                                  gainLoss >= 0
-                                    ? "bg-chart-1 text-white"
-                                    : "bg-chart-2 text-white"
-                                }
-                              >
-                                {gainLoss >= 0 ? "+" : ""}
-                                {gainLoss.toFixed(2)}%
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="font-semibold text-foreground">
-                              ${currentValue.toFixed(2)}
-                            </span>
-                            <div className="flex items-center gap-1">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleBuy(asset, qty)}
-                                disabled={!canBuy}
-                                className="bg-primary text-primary-foreground hover:bg-primary/90"
-                                title={
-                                  !canBuy
-                                    ? "Not enough cash or invalid qty"
-                                    : "Buy"
-                                }
-                              >
-                                <ShoppingCart className="h-3 w-3" />
-                              </Button>
-                              <Input
-                                type="number"
-                                inputMode="decimal"
-                                min={0}
-                                step={0.1}
-                                className="w-16 bg-white text-foreground"
-                                value={Number.isFinite(qty) ? qty : 0.1}
-                                onChange={(e) => {
-                                  const v = parseFloat(e.target.value);
-                                  setTradeQty((prev) => ({
-                                    ...prev,
-                                    [asset]: isNaN(v) ? 0 : v,
-                                  }));
-                                }}
-                              />
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleSell(asset, qty)}
-                                disabled={!canSell}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                title={!canSell ? "Invalid qty" : "Sell"}
-                              >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* AI Coach Chat */}
-          <div className="lg:col-span-1">
-            <CoachChat
-              selectedCoach={selectedCoach}
-              chatMessages={chatMessages}
-              newMessage={newMessage}
-              setNewMessage={setNewMessage}
-              sendMessage={sendMessage}
-            />
+            {/* AI Coach Chat */}
+            <div className="lg:col-span-1">
+              <CoachChat
+                selectedCoach={selectedCoach}
+                chatMessages={chatMessages}
+                newMessage={newMessage}
+                setNewMessage={setNewMessage}
+                sendMessage={sendMessage}
+              />
+            </div>
           </div>
         </div>
       </div>

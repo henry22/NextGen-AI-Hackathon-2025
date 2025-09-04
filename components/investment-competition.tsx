@@ -320,25 +320,32 @@ export default function InvestmentCompetition({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-card/30 to-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-8 sm:mb-8 gap-6 sm:gap-0">
           <Button
             variant="outline"
             onClick={onBack}
-            className="flex items-center gap-2 bg-transparent"
+            className="flex items-center gap-2 bg-transparent w-full sm:w-auto justify-center order-2 sm:order-none py-3 sm:py-2"
           >
             <ArrowLeft className="h-4 w-4" /> Back to Timeline
           </Button>
-          <div className="text-center">
-            <h1 className="text-3xl font-serif font-bold text-foreground">
+          <div className="text-center order-1 sm:order-none flex-1">
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-foreground mb-2 sm:mb-1">
               Investment Competition
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               Use your $5,000 starting capital to begin your investment journey
             </p>
           </div>
-          <div className="w-24" />
+          <div className="w-full sm:w-auto order-3 sm:order-none flex justify-end">
+            <Button
+              variant="destructive"
+              className="w-full sm:w-auto py-3 sm:py-2"
+            >
+              End Competition
+            </Button>
+          </div>
         </div>
 
         {/* Quotes loading/error */}
@@ -349,32 +356,37 @@ export default function InvestmentCompetition({
         )}
 
         {/* Capital Overview - Sticky positioning */}
-        <div className="sticky top-4 z-10 mb-8">
+        <div className="sticky top-4 z-10 mb-6 sm:mb-8">
           <Card className="border-primary/20 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-primary">
-                <DollarSign className="h-6 w-6" /> Capital Overview
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="flex items-center gap-2 text-primary text-base sm:text-lg">
+                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6" /> Capital
+                Overview
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-6">
+            <CardContent className="p-4 sm:p-6">
+              <div className="grid grid-cols-3 gap-3 sm:gap-6">
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Starting Capital
                   </p>
-                  <p className="text-2xl font-bold text-primary">
+                  <p className="text-lg sm:text-2xl font-bold text-primary">
                     ${startingCapital}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Allocated</p>
-                  <p className="text-2xl font-bold text-secondary">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Allocated
+                  </p>
+                  <p className="text-lg sm:text-2xl font-bold text-secondary">
                     ${totalAllocated}
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Remaining</p>
-                  <p className="text-2xl font-bold text-accent">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Remaining
+                  </p>
+                  <p className="text-lg sm:text-2xl font-bold text-accent">
                     ${remainingCapital}
                   </p>
                 </div>
@@ -404,47 +416,50 @@ export default function InvestmentCompetition({
               </div>
 
               {/* 图例 */}
-              <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+              <div className="mt-2 flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
                   <span
                     className={`inline-block h-2 w-2 rounded-sm ${TYPE_COLORS.stock.legend}`}
                   />
-                  Stocks ${allocStock}
+                  <span className="hidden sm:inline">Stocks</span> ${allocStock}
                 </span>
                 <span className="inline-flex items-center gap-1">
                   <span
                     className={`inline-block h-2 w-2 rounded-sm ${TYPE_COLORS.fund.legend}`}
                   />
-                  Funds ${allocFund}
+                  <span className="hidden sm:inline">Funds</span> ${allocFund}
                 </span>
                 <span className="inline-flex items-center gap-1">
                   <span
                     className={`inline-block h-2 w-2 rounded-sm ${TYPE_COLORS.crypto.legend}`}
                   />
-                  Crypto ${allocCrypto}
+                  <span className="hidden sm:inline">Crypto</span> $
+                  {allocCrypto}
                 </span>
                 <span className="inline-flex items-center gap-1">
                   <span className="inline-block h-2 w-2 rounded-sm bg-muted" />
-                  Remaining ${remainingCapital}
+                  <span className="hidden sm:inline">Remaining</span> $
+                  {remainingCapital}
                 </span>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Investment Options */}
           <div className="lg:col-span-2">
-            <h2 className="text-2xl font-serif font-bold mb-6">
+            <h2 className="text-xl sm:text-2xl font-serif font-bold mb-4 sm:mb-6">
               Choose Investment Targets
             </h2>
 
             {/* Stocks */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" /> Stocks
+            <div className="mb-6 sm:mb-8">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />{" "}
+                Stocks
               </h3>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {investmentOptions
                   .filter((o) => o.type === "stock")
                   .map((option) => {
@@ -458,20 +473,22 @@ export default function InvestmentCompetition({
                         key={option.id}
                         className="hover:shadow-lg transition-shadow"
                       >
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Icon className="h-6 w-6 text-primary" />
-                              <div>
-                                <CardTitle className="text-base">
+                        <CardHeader className="pb-2 sm:pb-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                              <div className="flex-1">
+                                <CardTitle className="text-sm sm:text-base">
                                   {option.name}
                                 </CardTitle>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-xs sm:text-sm text-muted-foreground">
                                   {option.description}
                                 </p>
                               </div>
                             </div>
-                            <Badge className={getRiskColor(option.risk)}>
+                            <Badge
+                              className={`text-xs ${getRiskColor(option.risk)}`}
+                            >
                               {option.risk === "low"
                                 ? "Low Risk"
                                 : option.risk === "medium"
@@ -480,27 +497,27 @@ export default function InvestmentCompetition({
                             </Badge>
                           </div>
                         </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="font-semibold">
+                        <CardContent className="p-3 sm:p-6">
+                          <div className="flex items-center justify-between mb-2 sm:mb-3">
+                            <span className="font-semibold text-sm sm:text-base">
                               {price != null ? `$${price.toFixed(2)}` : "--"}
                             </span>
                             <span
-                              className={`flex items-center gap-1 ${
+                              className={`flex items-center gap-1 text-xs sm:text-sm ${
                                 change >= 0 ? "text-green-600" : "text-red-600"
                               }`}
                             >
                               {change >= 0 ? (
-                                <TrendingUp className="h-4 w-4" />
+                                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
                               ) : (
-                                <TrendingDown className="h-4 w-4" />
+                                <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4" />
                               )}
                               {change >= 0 ? "+" : ""}
                               {change.toFixed(2)}%
                             </span>
                           </div>
                           <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center justify-between text-xs sm:text-sm">
                               <span>Investment Amount</span>
                               <span>${allocations[option.id] || 0}</span>
                             </div>
@@ -522,11 +539,11 @@ export default function InvestmentCompetition({
             </div>
 
             {/* Funds */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" /> Funds
+            <div className="mb-6 sm:mb-8">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+                <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-primary" /> Funds
               </h3>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {investmentOptions
                   .filter((o) => o.type === "fund")
                   .map((option) => {
@@ -540,20 +557,22 @@ export default function InvestmentCompetition({
                         key={option.id}
                         className="hover:shadow-lg transition-shadow"
                       >
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Icon className="h-6 w-6 text-primary" />
-                              <div>
-                                <CardTitle className="text-base">
+                        <CardHeader className="pb-2 sm:pb-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                              <div className="flex-1">
+                                <CardTitle className="text-sm sm:text-base">
                                   {option.name}
                                 </CardTitle>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-xs sm:text-sm text-muted-foreground">
                                   {option.description}
                                 </p>
                               </div>
                             </div>
-                            <Badge className={getRiskColor(option.risk)}>
+                            <Badge
+                              className={`text-xs ${getRiskColor(option.risk)}`}
+                            >
                               {option.risk === "low"
                                 ? "Low Risk"
                                 : option.risk === "medium"
@@ -562,27 +581,27 @@ export default function InvestmentCompetition({
                             </Badge>
                           </div>
                         </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="font-semibold">
+                        <CardContent className="p-3 sm:p-6">
+                          <div className="flex items-center justify-between mb-2 sm:mb-3">
+                            <span className="font-semibold text-sm sm:text-base">
                               {price != null ? `$${price.toFixed(2)}` : "--"}
                             </span>
                             <span
-                              className={`flex items-center gap-1 ${
+                              className={`flex items-center gap-1 text-xs sm:text-sm ${
                                 change >= 0 ? "text-green-600" : "text-red-600"
                               }`}
                             >
                               {change >= 0 ? (
-                                <TrendingUp className="h-4 w-4" />
+                                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
                               ) : (
-                                <TrendingDown className="h-4 w-4" />
+                                <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4" />
                               )}
                               {change >= 0 ? "+" : ""}
                               {change.toFixed(2)}%
                             </span>
                           </div>
                           <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center justify-between text-xs sm:text-sm">
                               <span>Investment Amount</span>
                               <span>${allocations[option.id] || 0}</span>
                             </div>
@@ -604,11 +623,12 @@ export default function InvestmentCompetition({
             </div>
 
             {/* Crypto */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" /> Cryptocurrency
+            <div className="mb-6 sm:mb-8">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+                <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />{" "}
+                Cryptocurrency
               </h3>
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {investmentOptions
                   .filter((o) => o.type === "crypto")
                   .map((option) => {
@@ -622,20 +642,22 @@ export default function InvestmentCompetition({
                         key={option.id}
                         className="hover:shadow-lg transition-shadow"
                       >
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Icon className="h-6 w-6 text-primary" />
-                              <div>
-                                <CardTitle className="text-base">
+                        <CardHeader className="pb-2 sm:pb-3">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                              <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                              <div className="flex-1">
+                                <CardTitle className="text-sm sm:text-base">
                                   {option.name}
                                 </CardTitle>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-xs sm:text-sm text-muted-foreground">
                                   {option.description}
                                 </p>
                               </div>
                             </div>
-                            <Badge className={getRiskColor(option.risk)}>
+                            <Badge
+                              className={`text-xs ${getRiskColor(option.risk)}`}
+                            >
                               {option.risk === "low"
                                 ? "Low Risk"
                                 : option.risk === "medium"
@@ -644,9 +666,9 @@ export default function InvestmentCompetition({
                             </Badge>
                           </div>
                         </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="font-semibold">
+                        <CardContent className="p-3 sm:p-6">
+                          <div className="flex items-center justify-between mb-2 sm:mb-3">
+                            <span className="font-semibold text-sm sm:text-base">
                               {price != null
                                 ? `$${price.toLocaleString(undefined, {
                                     maximumFractionDigits: 2,
@@ -654,21 +676,21 @@ export default function InvestmentCompetition({
                                 : "--"}
                             </span>
                             <span
-                              className={`flex items-center gap-1 ${
+                              className={`flex items-center gap-1 text-xs sm:text-sm ${
                                 change >= 0 ? "text-green-600" : "text-red-600"
                               }`}
                             >
                               {change >= 0 ? (
-                                <TrendingUp className="h-4 w-4" />
+                                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
                               ) : (
-                                <TrendingDown className="h-4 w-4" />
+                                <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4" />
                               )}
                               {change >= 0 ? "+" : ""}
                               {change.toFixed(2)}%
                             </span>
                           </div>
                           <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center justify-between text-xs sm:text-sm">
                               <span>Investment Amount</span>
                               <span>${allocations[option.id] || 0}</span>
                             </div>
@@ -691,10 +713,10 @@ export default function InvestmentCompetition({
           </div>
           {/* AI Coach Selection */}
           <div>
-            <h2 className="text-2xl font-serif font-bold mb-6">
+            <h2 className="text-xl sm:text-2xl font-serif font-bold mb-4 sm:mb-6">
               Choose AI Coach
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {aiCoaches.map((coach) => (
                 <Card
                   key={coach.id}
@@ -705,17 +727,17 @@ export default function InvestmentCompetition({
                   }`}
                   onClick={() => setSelectedCoach(coach)}
                 >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
+                  <CardHeader className="pb-2 sm:pb-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       <Image
                         src={coach.avatar}
                         alt={coach.name}
-                        width={40}
-                        height={40}
-                        className="rounded-full"
+                        width={32}
+                        height={32}
+                        className="rounded-full sm:w-10 sm:h-10"
                       />
                       <div className="flex-1">
-                        <CardTitle className="text-base">
+                        <CardTitle className="text-sm sm:text-base">
                           {coach.name}
                         </CardTitle>
                         <Badge variant="secondary" className="text-xs">
@@ -723,7 +745,7 @@ export default function InvestmentCompetition({
                         </Badge>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-semibold text-primary">
+                        <p className="text-xs sm:text-sm font-semibold text-primary">
                           {coach.successRate}%
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -732,8 +754,8 @@ export default function InvestmentCompetition({
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-2">
+                  <CardContent className="p-3 sm:p-6">
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-2">
                       {coach.description}
                     </p>
                     <p className="text-xs text-primary font-medium">
@@ -745,18 +767,18 @@ export default function InvestmentCompetition({
             </div>
 
             {/* Start Competition Button */}
-            <Card className="mt-8 border-primary/20">
-              <CardContent className="pt-6">
+            <Card className="mt-6 sm:mt-8 border-primary/20">
+              <CardContent className="pt-4 sm:pt-6">
                 <Button
-                  className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
                   disabled={!canStartCompetition}
                   onClick={startCompetition}
                 >
-                  <Brain className="h-5 w-5 mr-2" />
+                  <Brain className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Start Competition
                 </Button>
                 {!canStartCompetition && (
-                  <p className="text-sm text-muted-foreground text-center mt-2">
+                  <p className="text-xs sm:text-sm text-muted-foreground text-center mt-2">
                     Please select investments and AI coach
                   </p>
                 )}
