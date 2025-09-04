@@ -1,14 +1,15 @@
-import openai
 import os
 from typing import Dict, List, Any
+from openai import AsyncOpenAI
 from models import CoachRequest, CoachResponse
 
 
 class CoachService:
     def __init__(self):
         self.api_key = os.getenv("OPENAI_API_KEY")
+        self.client = None
         if self.api_key:
-            openai.api_key = self.api_key
+            self.client = AsyncOpenAI(api_key=self.api_key)
 
     async def get_advice(self, request: CoachRequest) -> CoachResponse:
         """Get personalized AI coach advice"""
@@ -65,7 +66,7 @@ class CoachService:
         print("🚀 Calling OpenAI API...")
 
         # Call OpenAI API
-        response = await openai.ChatCompletion.acreate(
+        response = await self.client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": system_prompt},

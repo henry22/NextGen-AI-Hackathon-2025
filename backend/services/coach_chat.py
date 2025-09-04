@@ -1,19 +1,16 @@
 from __future__ import annotations
 import os
 import random
+import asyncio
 from typing import Dict, Optional
 
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, RateLimitError, APIStatusError, AuthenticationError
 import httpx
 
 from models import (
     CoachReplyRequest,
     CoachReplyResponse,
 )
-
-import asyncio
-import random
-from openai import AsyncOpenAI, RateLimitError, APIStatusError, AuthenticationError
 
 
 class CoachChatService:

@@ -27,7 +27,6 @@ import yfinance as yf
 import json
 import os
 from dotenv import load_dotenv
-import openai
 
 
 # Load environment variables from .env file
@@ -58,6 +57,7 @@ def safe_json_serializer(obj):
     if isinstance(obj, pd.DataFrame):
         return obj.to_dict('records')
     return obj
+
 
 app = FastAPI(
     title="Legacy Guardians API",
